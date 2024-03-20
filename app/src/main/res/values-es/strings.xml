@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Task Schedule</string>
+    <string name="otros">Otros</string>
+    <string name="ocio">Ocio</string>
+    <string name="ocupacion">Ocupación</string>
+    <string name="deporte">Deporte</string>
+    <string name="diario">Diario</string>
+    <string name="tiempo">Tiempo</string>
+    <string name="categoria">Categoria</string>
+    <string name="stop">Pausar</string>
+    <string name="play">Empezar</string>
+    <string name="remove">Eliminar</string>
+    <string name="agregar_act">Agregar Actividad</string>
+    <string name="nombre">Nombre de la Actividad</string>
+    <string name="agregar">Agregar</string>
+    <string name="cancelar">Cancelar</string>
+    <string name="selecciona">Selecciona tu idioma</string>
+    <string name="claro">Modo claro</string>
+    <string name="oscuro">Modo oscuro</string>
+    <string name="idioma">Idioma</string>
+    <string name="settings">Configuración</string>
+    <string name="Lista">Lista de actividades</string>
+    <string name="Estadísticas">Estadísticas</string>
+    <string name="noText">Parece que no he hecho nada este día</string>
+    <string name="Invertido">He invertido el tiempo del día</string>
+    <string name="Manera">de la siguiente manera:</string>
+    <string name="FechaSelec">"Día seleccionado: "</string>
+    <string name="Decrementar">Decrementar día</string>
+    <string name="Incrementar">Incrementar día</string>
+    <string name="Graf">Gráficas</string>
+    <string name="Circ">Gráfico circular</string>
+    <string name="Bar">Gráfico de barras</string>
+    <string name="Agrupado">Agrupado por:</string>
+    <string name="Categ">Categoría</string>
+    <string name="Act">Actividad</string>
+    <string name="Selector">Selector de gráficos</string>
+    <string name="Compartir">Compartir</string>
+    <string name="No_Data">No hay datos para este día</string>
+    <string name="Descargar">Descargar actividades</string>
+    <string name="channel_act">Canal de actividad</string>
+    <string name="channel_desc">Canal para gestionar la actividad actual</string>
+    <string name="notification_title">Estas haciendo una actividad</string>
+    <string name="Estashaciendo">Ahora estás haciendo</string>
+    <string name="pulsa">Pulsa para cambiar</string>
+</resources>

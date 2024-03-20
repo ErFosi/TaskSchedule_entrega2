@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Task Schedule</string>
+    <string name="otros">Others</string>
+    <string name="ocio">Leisure</string>
+    <string name="ocupacion">Ocupation</string>
+    <string name="deporte">Sport</string>
+    <string name="diario">Daily</string>
+    <string name="tiempo">Time</string>
+    <string name="categoria">Category</string>
+    <string name="stop">Stop</string>
+    <string name="play">Start</string>
+    <string name="remove">Remove</string>
+    <string name="agregar_act">New Activity</string>
+    <string name="nombre">Activity\'s name</string>
+    <string name="agregar">Add</string>
+    <string name="cancelar">Cancel</string>
+    <string name="selecciona">Select your language</string>
+    <string name="claro">Light mode</string>
+    <string name="oscuro">Dark mode</string>
+    <string name="idioma">Language</string>
+    <string name="settings">Settings</string>
+    <string name="Lista">Task list</string>
+    <string name="Estadísticas">Statistics</string>
+    <string name="noText">Seems like I did nothing this day</string>
+    <string name="Invertido">I have used the time of</string>
+    <string name="Manera">in this tasks:</string>
+    <string name="FechaSelec">Selected day</string>
+    <string name="Decrementar">Decrement day</string>
+    <string name="Incrementar">Increment day</string>
+    <string name="Graf">Graphics</string>
+    <string name="Circ">Circular graph</string>
+    <string name="Bar">Bars graph</string>
+    <string name="Agrupado">Grouped by:</string>
+    <string name="Categ">Category</string>
+    <string name="Act">Task</string>
+    <string name="Selector">Graph selector</string>
+    <string name="Compartir">Share</string>
+    <string name="No_Data">There is no data this day</string>
+    <string name="Descargar">Download tasks</string>
+    <string name="channel_act">Task channel</string>
+    <string name="channel_desc">Channel in charge of the current activity</string>
+    <string name="notification_title">Your are doing a task</string>
+    <string name="Estashaciendo">"Now you are doing "</string>
+    <string name="pulsa">Click to change</string>
+</resources>

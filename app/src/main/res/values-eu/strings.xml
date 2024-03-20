@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Task Schedule</string>
+    <string name="otros">Besteak</string>
+    <string name="ocio">Aisia</string>
+    <string name="ocupacion">Zeregin</string>
+    <string name="deporte">Kirola</string>
+    <string name="diario">Egunekoa</string>
+    <string name="tiempo">Denbora</string>
+    <string name="categoria">Kategoria</string>
+    <string name="stop">Geldi</string>
+    <string name="play">Hasi</string>
+    <string name="remove">Ezabatu</string>
+    <string name="agregar_act">Aktibitate berria</string>
+    <string name="nombre">Aktibitatearen izena</string>
+    <string name="agregar">Eraiki</string>
+    <string name="cancelar">Deuseztatu</string>
+    <string name="selecciona">Zure hizkuntza aukeratu</string>
+    <string name="claro">Modu argia</string>
+    <string name="oscuro">Modu iluna</string>
+    <string name="idioma">Hizkuntza</string>
+    <string name="settings">Konfigurazioa</string>
+    <string name="Lista">Aktibitate lista</string>
+    <string name="Estadísticas">Estadistikak</string>
+    <string name="noText">Ez dut ezer egin</string>
+    <string name="Invertido">"  "</string>
+    <string name="Manera">Eguneko denbora horrela erabili dut:</string>
+    <string name="FechaSelec">"Aukeratutako eguna: "</string>
+    <string name="Decrementar">Egun bat gutxiago</string>
+    <string name="Incrementar">Egun bat gehiago</string>
+    <string name="Graf">Grafikoak</string>
+    <string name="Circ">Grafiko biribila</string>
+    <string name="Bar">Barra grafikoa</string>
+    <string name="Agrupado">Taldekatu modua:</string>
+    <string name="Categ">Kategoria</string>
+    <string name="Act">Aktibitate</string>
+    <string name="Selector">Grafiko aukeratzaile</string>
+    <string name="Compartir">Partekatu</string>
+    <string name="No_Data">Egun honetarako ez dago daturik</string>
+    <string name="Descargar">Aktibitateak bajatu</string>
+    <string name="channel_act">Aktibitate kanala</string>
+    <string name="channel_desc">Aktibitate honetako kudeaketa kanala</string>
+    <string name="notification_title">Aktibitate bat egiten ari zara</string>
+    <string name="Estashaciendo">"Egiten ari zara "</string>
+    <string name="pulsa">Sakatu aldatzeko</string>
+</resources>
