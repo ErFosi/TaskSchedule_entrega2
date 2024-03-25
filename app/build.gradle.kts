@@ -101,4 +101,10 @@ dependencies {
     //gson para los json
     implementation ("com.google.code.gson:gson:2.8.8")
     implementation ("com.google.android.material:material:1.4.0")
+
+    //ktor para cliente http
+    val ktor_version="2.3.9"
+    implementation ("io.ktor:ktor-client-android:$ktor_version")
+    implementation ("io.ktor:ktor-client-content-negotiation:$ktor_version")
+    implementation ("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
 }

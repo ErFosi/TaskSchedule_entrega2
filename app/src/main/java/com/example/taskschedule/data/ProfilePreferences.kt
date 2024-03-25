@@ -56,9 +56,12 @@ class ProfilePreferencesDataStore @Inject constructor(
 ){
 private val profilePreferences=context.profilePreferences
 
-    private object PreferencesKeys{
-        val OSCURO_KEY= booleanPreferencesKey("oscuro")
-        val IDIOMA_KEY= stringPreferencesKey("idioma")
+    private object PreferencesKeys {
+        val OSCURO_KEY = booleanPreferencesKey("oscuro")
+        val IDIOMA_KEY = stringPreferencesKey("idioma")
+        val USUARIO_KEY = stringPreferencesKey("usuario")
+        val CONTRASENA_KEY = stringPreferencesKey("contrasena")
+        val TOKEN_KEY = stringPreferencesKey("token")
     }
 
     val settingsFlow= profilePreferences.data
@@ -84,6 +87,26 @@ private val profilePreferences=context.profilePreferences
 
         }
     }
+
+    /************************************************************************
+     * Función para guardar datos login
+     *************************************************************************/
+    suspend fun saveUserCredentialsAndToken(usuario: String, contrasena: String, token: String) {
+        profilePreferences.edit { preferences ->
+            preferences[PreferencesKeys.USUARIO_KEY] = usuario
+            preferences[PreferencesKeys.CONTRASENA_KEY] = contrasena
+            preferences[PreferencesKeys.TOKEN_KEY] = token
+        }
+    }
+
+    /************************************************************************
+     * Función para obtener el token
+     *************************************************************************/
+    fun tokenFlow(): Flow<String?> = profilePreferences.data.map { preferences ->
+        preferences[PreferencesKeys.TOKEN_KEY]
+    }
+
+
     /************************************************************************
      *La siguiente función devuelve un flow del idioma preferido por el usuario
      *************************************************************************/

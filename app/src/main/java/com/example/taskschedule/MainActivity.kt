@@ -54,6 +54,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import com.example.taskschedule.screens.LoginScreen
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
@@ -247,7 +248,11 @@ fun TaskDownBar(navController: NavHostController) {
  *************************************************************************/
 @Composable
 fun NavigationGraph(navController: NavHostController, viewModel: ActivitiesViewModel) {
-    NavHost(navController = navController, startDestination = "listaActividades", Modifier.fillMaxSize()) {
+    NavHost(navController = navController, startDestination = "login", Modifier.fillMaxSize()) {
+        composable("login"){
+            LoginScreen()
+        }
+
         composable("datePicker") {
             val calendarViewModel: CalendarViewModel = hiltViewModel()
             DatePickerComposable(calendarViewModel = calendarViewModel)

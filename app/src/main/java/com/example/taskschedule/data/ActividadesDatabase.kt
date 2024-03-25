@@ -8,9 +8,9 @@ import com.example.taskschedule.utils.DateConverter
  * Aqui definimos la base de datos de ROOM y sus entidades, en este caso
  * Actividad es la unica entidad que almacenaremos
  *************************************************************************/
-@Database(entities = [Actividad::class], version = 1, exportSchema = false)
+@Database(entities = [Actividad::class, Ubicacion::class], version = 2, exportSchema = false)
 @TypeConverters(DateConverter::class)
 abstract class ActividadesDatabase: RoomDatabase() {
     abstract fun actividadDao(): ActividadesDao
-
+    abstract fun ubicacionDao(): UbicacionDao
 }

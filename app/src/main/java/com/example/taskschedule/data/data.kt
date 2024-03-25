@@ -29,3 +29,12 @@ data class Actividad(
     val fecha: LocalDate = LocalDate.now()
 )
 
+@Entity(tableName = "ubicaciones")
+data class Ubicacion(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int,
+    val actividadId: Int,
+    val latitud: Double,
+    val longitud: Double
+)
+
