@@ -7,6 +7,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.compose.runtime.Immutable
 import java.time.LocalDate
+import kotlinx.serialization.Serializable
 
 /************************************************************************
  * Entidad de la base de datos, el id es autogenerado por lo que da igual
@@ -36,5 +37,10 @@ data class Ubicacion(
     val actividadId: Int,
     val latitud: Double,
     val longitud: Double
+)
+@Serializable
+data class UsuarioCred(
+    val usuario:String,
+    val contraseña:String
 )
 
