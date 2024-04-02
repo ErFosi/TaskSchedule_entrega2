@@ -65,6 +65,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.wear.compose.material.ContentAlpha
+import com.example.taskschedule.viewmodels.ActivitiesViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,7 +86,7 @@ fun CustomSwitch(
 }
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen( mainViewModel:ActivitiesViewModel) {
     val backgroundColor = MaterialTheme.colorScheme.background
     val primaryColor = MaterialTheme.colorScheme.primary
     val onPrimaryColor = MaterialTheme.colorScheme.onPrimary
@@ -172,7 +173,9 @@ fun LoginScreen() {
 
 
                     Button(
-                        onClick = { /* Handle login or register logic */ },
+                        onClick = { if (!isSwitchChecked){
+                            mainViewModel.login(username,password)
+                        } },
                         modifier = Modifier
                             .weight(0.6f)
                             .height(40.dp)
@@ -234,8 +237,10 @@ fun AnimatedDiagonalLinesBackground() {
         }
     }
 }
+
+/*
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
     LoginScreen()
-}
+}*/

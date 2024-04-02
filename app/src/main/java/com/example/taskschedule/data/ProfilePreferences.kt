@@ -43,7 +43,7 @@ enum class Idioma(val language: String, val code: String) {
     }
 }
 data class Settings(val oscuro:Boolean,
-val idioma:Idioma)
+val idioma:Idioma,val usuario:String)
 
 /************************************************************************
  * DataStore de los ajustes, este es un singleton y almacenará los valores
@@ -74,8 +74,8 @@ private val profilePreferences=context.profilePreferences
         }.map { preferences->
             val oscuro = preferences[PreferencesKeys.OSCURO_KEY] ?: true
             val idioma:Idioma = Idioma.getFromCode(Locale.getDefault().language.lowercase())?:Idioma.EN
-
-            Settings(oscuro,idioma)
+            val usuario=preferences[PreferencesKeys.USUARIO_KEY] ?: ""
+            Settings(oscuro,idioma,usuario)
         }
 
     /************************************************************************
@@ -84,6 +84,12 @@ private val profilePreferences=context.profilePreferences
     suspend fun updateOscuro(oscuro: Boolean){
         profilePreferences.edit { settings ->
             settings[PreferencesKeys.OSCURO_KEY]= oscuro
+
+        }
+    }
+    suspend fun updateUsuario(usuario: String){
+        profilePreferences.edit { settings ->
+            settings[PreferencesKeys.USUARIO_KEY]= ""
 
         }
     }

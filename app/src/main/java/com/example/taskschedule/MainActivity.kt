@@ -42,6 +42,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
@@ -250,7 +251,17 @@ fun TaskDownBar(navController: NavHostController) {
 fun NavigationGraph(navController: NavHostController, viewModel: ActivitiesViewModel) {
     NavHost(navController = navController, startDestination = "login", Modifier.fillMaxSize()) {
         composable("login"){
-            LoginScreen()
+            if (viewModel.lastLogged.equals("")) {
+                LoginScreen(viewModel)
+            } else {
+                /*
+                LaunchedEffect(Unit) {
+                    navController.navigate("listaActividades") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                }*/
+                LoginScreen(viewModel)
+            }
         }
 
         composable("datePicker") {

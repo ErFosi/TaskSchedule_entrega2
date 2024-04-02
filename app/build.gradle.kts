@@ -4,6 +4,10 @@ plugins {
 
     id ("kotlin-kapt")
     id ("com.google.dagger.hilt.android")
+
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.0"
+
+
 }
 
 android {
@@ -47,7 +51,7 @@ android {
     }
     packaging {
         resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/INDEX.LIST"
         }
     }
 }
@@ -103,14 +107,16 @@ dependencies {
     implementation ("com.google.android.material:material:1.4.0")
 
     //ktor para cliente http
-    val ktor_version="2.3.9"
+    val ktor_version="2.3.8"
+
+
     implementation ("io.ktor:ktor-client-android:$ktor_version")
     implementation ("io.ktor:ktor-client-content-negotiation:$ktor_version")
     implementation ("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
     implementation ("io.ktor:ktor-client-auth:$ktor_version")
-    implementation("io.ktor:ktor-server-core-jvm")
-    implementation("io.ktor:ktor-server-content-negotiation-jvm")
-    implementation("io.ktor:ktor-serialization-kotlinx-json-jvm")
-    implementation("io.ktor:ktor-server-netty-jvm")
     implementation ("io.ktor:ktor-client-cio:$ktor_version")
+    //implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
+
+    implementation ("io.ktor:ktor-client-serialization-jvm:$ktor_version")
 }

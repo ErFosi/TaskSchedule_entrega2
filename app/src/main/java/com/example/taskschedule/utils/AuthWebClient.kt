@@ -14,8 +14,10 @@ import io.ktor.client.plugins.auth.providers.BearerTokens
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.forms.*
 import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.json
+import io.ktor.serialization.kotlinx.json.*
 import com.example.taskschedule.utils.*
+import com.example.taskschedule.utils.TokenInfo
+
 
 
 @Singleton
@@ -45,7 +47,7 @@ class AuthWebClient @Inject constructor() {
     @Throws(AuthenticationException::class, Exception::class)
     suspend fun authenticate(user: UsuarioCred) {
         val tokenInfo: TokenInfo = clienteHttp.submitForm(
-            url = "http://localhost:8000/token",
+            url = "http://34.175.199.254:8000/token",
             formParameters = Parameters.build {
                 append("grant_type", "password")
                 append("username", user.usuario)

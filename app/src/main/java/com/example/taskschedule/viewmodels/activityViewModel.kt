@@ -21,6 +21,7 @@ import com.example.taskschedule.data.Actividad
 import com.example.taskschedule.data.Idioma
 import com.example.taskschedule.data.ProfilePreferencesDataStore
 import com.example.taskschedule.repositories.ActividadesRepository
+import com.example.taskschedule.utils.AuthWebClient
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.map
@@ -33,6 +34,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.last
 import java.time.LocalDate
 import kotlin.random.Random
+import com.example.taskschedule.data.UsuarioCred
+import com.example.taskschedule.utils.AuthenticationException
+import com.example.taskschedule.utils.UserExistsException
+
 
 /************************************************************************
  * Viewmodel que se encargará de la lógica de toda la app de forma general
@@ -44,11 +49,14 @@ import kotlin.random.Random
 class ActivitiesViewModel @Inject constructor(
 private val settings:ProfilePreferencesDataStore,
 private val languageManager: LanguageManager,
-    private val actividadesRepo: ActividadesRepository
+    private val actividadesRepo: ActividadesRepository,
+    private val autenticador: AuthWebClient
 ): ViewModel() {
-    val oscuro =settings.settingsFlow.map{it.oscuro}
-    val idioma = settings.settingsFlow.map {it.idioma}
+    val lastLogged = settings.settingsFlow.map { it.usuario }
+    val oscuro = settings.settingsFlow.map { it.oscuro }
+    val idioma = settings.settingsFlow.map { it.idioma }
     private val _actividades = actividadesRepo.getActividadesPorFecha(LocalDate.now())
+
     init {
         /************************************************************************
          * Cuando se lance la app, el viewmodel tratará de aplicar el ultimo lenguaje
@@ -58,31 +66,35 @@ private val languageManager: LanguageManager,
         viewModelScope.launch {
             //changeLang(idioma.first())
             changeLang(Idioma.getFromCode(settings.language().first()))
-            Log.d("I","Se inicia la app con el idioma:"+settings.language().first())
+            Log.d("I", "Se inicia la app con el idioma:" + settings.language().first())
         }
+        viewModelScope.launch {
+            settings.updateUsuario(usuario = "")
+        }
+
     }
+
     /************************************************************************
      * Funcion que modifica la preferencia sobre el tema oscuro o claro
      *************************************************************************/
-    fun cambiarOscuro(oscuro : Boolean){
-        viewModelScope.launch{settings.updateOscuro(oscuro)}
+    fun cambiarOscuro(oscuro: Boolean) {
+        viewModelScope.launch { settings.updateOscuro(oscuro) }
 
     }
-
 
 
     /************************************************************************
      * Función que es llamada desde los composables cuando un usuario
      * selecciona otro idioma
      *************************************************************************/
-    fun updateIdioma(idioma:Idioma){
+    fun updateIdioma(idioma: Idioma) {
         viewModelScope.launch { settings.setLanguage(idioma.code) }
         this.changeLang(idioma)
-        Log.d("t","Se actualiza el idioma a"+idioma.language)
+        Log.d("t", "Se actualiza el idioma a" + idioma.language)
     }
 
     val actividades: Flow<List<Actividad>>
-        get()=_actividades
+        get() = _actividades
 
 
     /************************************************************************
@@ -92,33 +104,35 @@ private val languageManager: LanguageManager,
     fun agregarActividad(nombre: String) {
 
         val nuevaActividad = Actividad(
-            nombre = nombre,id = 0) //el id es autogenerado ya que es autogenerate (esto se ve en data/data.kt donde está la entidad)
-        viewModelScope.launch{
+            nombre = nombre, id = 0
+        ) //el id es autogenerado ya que es autogenerate (esto se ve en data/data.kt donde está la entidad)
+        viewModelScope.launch {
             actividadesRepo.insertActividad(nuevaActividad)
         }
     }
+
     /************************************************************************
      * Función que se encarga de la logica detrás del boton de play donde
      * registra cuanto tiempo ha pasado y modifica los valores de la actividad
      * en la BD mediante el DAO
      *************************************************************************/
     fun togglePlay(actividad: Actividad, context: Context) {
-            val currentActividad = actividad.copy()
+        val currentActividad = actividad.copy()
 
-            if (currentActividad.isPlaying) {
-                val endTime = System.currentTimeMillis()
-                val diff = (endTime - (currentActividad.startTimeMillis ?: endTime)) / 1000
-                currentActividad.tiempo += diff.toInt()
-                currentActividad.isPlaying = false
-            } else {
-                currentActividad.startTimeMillis = System.currentTimeMillis()
-                currentActividad.isPlaying = true
-                sendNotification(actividad, context)
-            }
+        if (currentActividad.isPlaying) {
+            val endTime = System.currentTimeMillis()
+            val diff = (endTime - (currentActividad.startTimeMillis ?: endTime)) / 1000
+            currentActividad.tiempo += diff.toInt()
+            currentActividad.isPlaying = false
+        } else {
+            currentActividad.startTimeMillis = System.currentTimeMillis()
+            currentActividad.isPlaying = true
+            sendNotification(actividad, context)
+        }
 
-            viewModelScope.launch {
-                actividadesRepo.updateActividad(currentActividad)
-            }
+        viewModelScope.launch {
+            actividadesRepo.updateActividad(currentActividad)
+        }
 
     }
 
@@ -128,9 +142,9 @@ private val languageManager: LanguageManager,
      *************************************************************************/
 
     fun updateCategoria(act: Actividad, nuevaCategoria: String) {
-       viewModelScope.launch {
-           actividadesRepo.updateActividad(act)
-       }
+        viewModelScope.launch {
+            actividadesRepo.updateActividad(act)
+        }
 
     }
 
@@ -141,15 +155,15 @@ private val languageManager: LanguageManager,
     fun onRemoveClick(id: Int) {
 
 
-            viewModelScope.launch {
-               var act=actividadesRepo.getActividadStream(id)
-                act.collect { actividad ->
-                    if (actividad != null) {
-                        actividadesRepo.deleteActividad(actividad)
-                    }
-                    return@collect
+        viewModelScope.launch {
+            var act = actividadesRepo.getActividadStream(id)
+            act.collect { actividad ->
+                if (actividad != null) {
+                    actividadesRepo.deleteActividad(actividad)
                 }
+                return@collect
             }
+        }
 
     }
 
@@ -172,13 +186,12 @@ private val languageManager: LanguageManager,
      *************************************************************************/
 
 
-
     /************************************************************************
      * Función donde se genera la notificación que ocurrirá siempre que se de
      * al botón de play de alguna actividad, esta guarda el id en el Extra
      * para poder gestionarlo una vez se clicka el boton de la notificación
      *************************************************************************/
-    private fun sendNotification(actividad:Actividad, context: Context){
+    private fun sendNotification(actividad: Actividad, context: Context) {
         val notificationManager = ContextCompat.getSystemService(
             context,
             NotificationManager::class.java
@@ -188,20 +201,23 @@ private val languageManager: LanguageManager,
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
 
-        val stopPendingIntent= PendingIntent.getActivity(context,1,intent,
-            PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE)
+        val stopPendingIntent = PendingIntent.getActivity(
+            context, 1, intent,
+            PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
+        )
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_background)
             .setContentTitle(context.getString(R.string.notification_title))
-            .setContentText(context.getString(R.string.Estashaciendo)+" ${actividad.nombre}")
+            .setContentText(context.getString(R.string.Estashaciendo) + " ${actividad.nombre}")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(stopPendingIntent)
-            .addAction(R.drawable.stop ,context.getString(R.string.stop),stopPendingIntent)
+            .addAction(R.drawable.stop, context.getString(R.string.stop), stopPendingIntent)
 
         with(notificationManager) {
             notify(generateRandomNotificationId(), builder.build())
         }
     }
+
     /************************************************************************
      * Función que genera un número aleatorio para el id de la notificación,
      * de esta manera podremos crear más de una notificación, si bien es
@@ -227,4 +243,28 @@ private val languageManager: LanguageManager,
     companion object {
         private const val CHANNEL_ID = "Task_channel"
     }
+
+    /************************************************************************
+     * Autenticarse
+     *************************************************************************/
+
+    fun login(username: String, contraseña: String): String {
+
+        val usuario: UsuarioCred = UsuarioCred(username, contraseña)
+        viewModelScope.launch {
+            try {
+                val logged = autenticador.authenticate(usuario)
+                Log.d("A",logged.toString())
+
+            } catch (e: AuthenticationException) {
+
+            } catch (e: UserExistsException) {
+
+            } catch (e: Exception) {
+
+            }
+        }
+        return ("")
+    }
 }
+
