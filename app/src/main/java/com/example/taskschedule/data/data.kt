@@ -33,7 +33,7 @@ data class Actividad(
 @Entity(tableName = "ubicaciones")
 data class Ubicacion(
     @PrimaryKey(autoGenerate = true)
-    val id: Int,
+    val id: Int = 0,
     val actividadId: Int,
     val latitud: Double,
     val longitud: Double
@@ -43,4 +43,33 @@ data class UsuarioCred(
     val usuario:String,
     val contraseña:String
 )
+@Serializable
+data class UsuarioResponse(
+    val usuario: String,
+    val id: Int,
+)
 
+@Serializable
+data class ActividadApi(
+    val id: Int,
+    val nombre: String,
+    val tiempo: Int,
+    val categoria: String,
+    val start_time_millis: Long,
+    val is_playing: Boolean,
+    val id_usuario: Int,
+    val fecha: String, // Suponiendo que la fecha viene en formato de String
+    val ubicaciones: List<UbicacionApi> = emptyList() // Agregar este campo
+)
+
+@Serializable
+data class UbicacionApi(
+    val latitud: Double,
+    val longitud: Double
+)
+
+
+@Serializable
+data class RespuestaServidor(
+    val mensaje: String
+)

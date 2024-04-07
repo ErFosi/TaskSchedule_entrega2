@@ -37,7 +37,6 @@ import com.example.taskschedule.screens.ListaActividadesUI
 import com.example.taskschedule.screens.LanguageAndThemeSelector
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.filled.BarChart
@@ -54,7 +53,6 @@ import com.example.taskschedule.viewmodels.CalendarViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
 import com.example.taskschedule.screens.LoginScreen
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
@@ -251,29 +249,39 @@ fun TaskDownBar(navController: NavHostController) {
 fun NavigationGraph(navController: NavHostController, viewModel: ActivitiesViewModel) {
     NavHost(navController = navController, startDestination = "login", Modifier.fillMaxSize()) {
         composable("login"){
-            if (viewModel.lastLogged.equals("")) {
-                LoginScreen(viewModel)
+            Log.d("d","El usuario es:"+viewModel.obtenerUltUsuario())
+
+            if (viewModel.obtenerUltUsuario().equals("")) {
+                LoginScreen(viewModel,navController)
             } else {
-                /*
-                LaunchedEffect(Unit) {
-                    navController.navigate("listaActividades") {
-                        popUpTo("login") { inclusive = true }
-                    }
-                }*/
-                LoginScreen(viewModel)
+                ListaActividadesUI( viewModel)
+                navController.navigate("listaActividades") {
+                popUpTo("login") { inclusive = true }
+            }
+
             }
         }
 
         composable("datePicker") {
-            val calendarViewModel: CalendarViewModel = hiltViewModel()
-            DatePickerComposable(calendarViewModel = calendarViewModel)
+            if (viewModel.obtenerUltUsuario().equals("")) {
+                LoginScreen(viewModel,navController)
+            } else {
+                val calendarViewModel: CalendarViewModel = hiltViewModel()
+                DatePickerComposable(calendarViewModel = calendarViewModel)
+            }
         }
 
         composable("listaActividades") {
-            ListaActividadesUI( viewModel)
+            if (viewModel.obtenerUltUsuario().equals("")) {
+                LoginScreen(viewModel, navController)
+            } else {
+                ListaActividadesUI(viewModel)
+            }
         }
-        composable(route="settings"){
-            LanguageAndThemeSelector(actividadesViewModel = viewModel)
+        composable(route="settings") {
+
+            LanguageAndThemeSelector(actividadesViewModel = viewModel, navController)
+
         }
     }
 }

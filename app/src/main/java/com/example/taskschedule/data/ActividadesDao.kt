@@ -58,4 +58,6 @@ interface ActividadesDao {
      *************************************************************************/
     @Query("SELECT * FROM actividades WHERE fecha = :fecha")
     fun getActividadesPorFecha(fecha: LocalDate): Flow<List<Actividad>>
+    @Query("DELETE FROM actividades")
+    suspend fun deleteAllActividades()
 }

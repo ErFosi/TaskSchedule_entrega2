@@ -20,6 +20,8 @@ import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
+import com.example.taskschedule.utils.*
+
 
 val Context.profilePreferences: DataStore<Preferences> by preferencesDataStore("settings")
 
@@ -55,13 +57,13 @@ class ProfilePreferencesDataStore @Inject constructor(
     @ApplicationContext context: Context
 ){
 private val profilePreferences=context.profilePreferences
-
+    @Inject
+    lateinit var aesCipher: AESCipher
     private object PreferencesKeys {
         val OSCURO_KEY = booleanPreferencesKey("oscuro")
         val IDIOMA_KEY = stringPreferencesKey("idioma")
         val USUARIO_KEY = stringPreferencesKey("usuario")
         val CONTRASENA_KEY = stringPreferencesKey("contrasena")
-        val TOKEN_KEY = stringPreferencesKey("token")
     }
 
     val settingsFlow= profilePreferences.data
@@ -74,7 +76,7 @@ private val profilePreferences=context.profilePreferences
         }.map { preferences->
             val oscuro = preferences[PreferencesKeys.OSCURO_KEY] ?: true
             val idioma:Idioma = Idioma.getFromCode(Locale.getDefault().language.lowercase())?:Idioma.EN
-            val usuario=preferences[PreferencesKeys.USUARIO_KEY] ?: ""
+            val usuario=preferences[PreferencesKeys.USUARIO_KEY] ?: "error"
             Settings(oscuro,idioma,usuario)
         }
 
@@ -97,20 +99,20 @@ private val profilePreferences=context.profilePreferences
     /************************************************************************
      * Función para guardar datos login
      *************************************************************************/
-    suspend fun saveUserCredentialsAndToken(usuario: String, contrasena: String, token: String) {
+    suspend fun saveUserCredentialsAndToken(usuario: String, contrasena: String) {
+        Log.d("E","Intento de almacenar cifrado")
+
+        val encryptedUser = aesCipher.encryptData("userKeyAlias", usuario)
+        val encryptedPassword = aesCipher.encryptData("passwordKeyAlias", contrasena)
+        Log.d("E","Usuario encriptado:"+encryptedUser)
+
+        Log.d("T", "Modificado en datastore")
         profilePreferences.edit { preferences ->
-            preferences[PreferencesKeys.USUARIO_KEY] = usuario
-            preferences[PreferencesKeys.CONTRASENA_KEY] = contrasena
-            preferences[PreferencesKeys.TOKEN_KEY] = token
+            preferences[PreferencesKeys.USUARIO_KEY] = encryptedUser
+            preferences[PreferencesKeys.CONTRASENA_KEY] = encryptedPassword
         }
     }
 
-    /************************************************************************
-     * Función para obtener el token
-     *************************************************************************/
-    fun tokenFlow(): Flow<String?> = profilePreferences.data.map { preferences ->
-        preferences[PreferencesKeys.TOKEN_KEY]
-    }
 
 
     /************************************************************************
@@ -124,6 +126,35 @@ private val profilePreferences=context.profilePreferences
     suspend fun setLanguage(code: String) {
         profilePreferences.edit { settings ->  settings[PreferencesKeys.IDIOMA_KEY]=code}
         Log.d("P","Se esta cambiando el lenguaje en el dataStore"+code)
+    }
+
+    fun user(): Flow<String> = profilePreferences.data.map { preferences ->
+        val encryptedUser = preferences[PreferencesKeys.USUARIO_KEY] ?: ""
+        if (encryptedUser.isNotEmpty()) {
+            try {
+                aesCipher.decryptData("userKeyAlias", encryptedUser)
+            } catch (e: Exception) {
+                Log.d("E","Error en el descifrado")
+                ""
+            }
+        } else {
+            ""
+        }
+    }
+
+    fun password(): Flow<String> = profilePreferences.data.map { preferences ->
+        val encryptedPassword = preferences[PreferencesKeys.CONTRASENA_KEY] ?: ""
+        if (encryptedPassword.isNotEmpty()) {
+            try {
+                aesCipher.decryptData("passwordKeyAlias", encryptedPassword)
+            } catch (e: Exception) {
+                Log.d("E","Error en el descifrado")
+                ""
+
+            }
+        } else {
+            ""
+        }
     }
 
 }

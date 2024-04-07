@@ -1,8 +1,10 @@
 package com.example.taskschedule.repositories
 
 import com.example.taskschedule.data.Actividad
+import com.example.taskschedule.data.ActividadApi
 import com.example.taskschedule.data.ActividadesDao
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -33,5 +35,9 @@ class ActividadesRepository @Inject constructor(private val actividadesDao: Acti
     override suspend fun updateActividad(actividad: Actividad) = actividadesDao.update(actividad)
 
     override fun getActividadesPorFecha(fecha: LocalDate): Flow<List<Actividad>> = actividadesDao.getActividadesPorFecha(fecha)
+
+    suspend fun deleteAllActividades() {
+        actividadesDao.deleteAllActividades()
+    }
 
 }

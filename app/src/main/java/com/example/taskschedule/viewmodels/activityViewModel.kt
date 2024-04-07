@@ -4,24 +4,25 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.util.Log
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.toMutableStateList
-import androidx.compose.ui.layout.LookaheadScope
-import androidx.compose.ui.res.stringResource
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.taskschedule.MainActivity
 import com.example.taskschedule.R
 import com.example.taskschedule.data.Actividad
+import com.example.taskschedule.data.ActividadApi
 import com.example.taskschedule.data.Idioma
 import com.example.taskschedule.data.ProfilePreferencesDataStore
+import com.example.taskschedule.data.UbicacionApi
 import com.example.taskschedule.repositories.ActividadesRepository
-import com.example.taskschedule.utils.AuthWebClient
+import com.example.taskschedule.utils.WebClient
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.map
@@ -31,10 +32,10 @@ import com.example.taskschedule.utils.LanguageManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.last
 import java.time.LocalDate
 import kotlin.random.Random
 import com.example.taskschedule.data.UsuarioCred
+import com.example.taskschedule.repositories.UbicacionesRepository
 import com.example.taskschedule.utils.AuthenticationException
 import com.example.taskschedule.utils.UserExistsException
 
@@ -50,13 +51,18 @@ class ActivitiesViewModel @Inject constructor(
 private val settings:ProfilePreferencesDataStore,
 private val languageManager: LanguageManager,
     private val actividadesRepo: ActividadesRepository,
-    private val autenticador: AuthWebClient
+    private val ubicacionesRepo: UbicacionesRepository,
+    private val autenticador: WebClient
 ): ViewModel() {
     val lastLogged = settings.settingsFlow.map { it.usuario }
     val oscuro = settings.settingsFlow.map { it.oscuro }
     val idioma = settings.settingsFlow.map { it.idioma }
     private val _actividades = actividadesRepo.getActividadesPorFecha(LocalDate.now())
-
+    var errorFoto = mutableStateOf(false)
+    var sincronizacionMessage = mutableStateOf<String?>(null)
+        private set
+    var fotoPerfil: Bitmap? by mutableStateOf(null)
+    var fotoPerfilPath: String? = null
     init {
         /************************************************************************
          * Cuando se lance la app, el viewmodel tratará de aplicar el ultimo lenguaje
@@ -67,10 +73,13 @@ private val languageManager: LanguageManager,
             //changeLang(idioma.first())
             changeLang(Idioma.getFromCode(settings.language().first()))
             Log.d("I", "Se inicia la app con el idioma:" + settings.language().first())
+            if (!settings.user().equals("")){
+                login(settings.user().first(),settings.password().first())
+            }
+
+
         }
-        viewModelScope.launch {
-            settings.updateUsuario(usuario = "")
-        }
+
 
     }
 
@@ -81,8 +90,26 @@ private val languageManager: LanguageManager,
         viewModelScope.launch { settings.updateOscuro(oscuro) }
 
     }
+    fun setProfileImage(image: Bitmap) {
+        viewModelScope.launch(Dispatchers.IO) {
+            fotoPerfil = null
+            try {
+                autenticador.uploadUserProfile(image)
+                fotoPerfil=image
 
-
+            }
+            catch (e :Exception){
+                Log.d("E","Error de conexión")
+                errorFoto.value=true
+            }
+        }
+    }
+    fun cargarImagen() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val image = BitmapFactory.decodeFile(fotoPerfilPath!!)
+            setProfileImage(image)
+        }
+    }
     /************************************************************************
      * Función que es llamada desde los composables cuando un usuario
      * selecciona otro idioma
@@ -248,23 +275,124 @@ private val languageManager: LanguageManager,
      * Autenticarse
      *************************************************************************/
 
-    fun login(username: String, contraseña: String): String {
+    suspend fun login(username: String, contraseña: String): String = try {
+        val usuario = UsuarioCred(username, contraseña)
+        autenticador.authenticate(usuario)
+        Log.d("T","logged usuario: $username")
+        Log.d("T","Se almacenará el usuario: $username")
+        settings.saveUserCredentialsAndToken(username, contraseña)
+        Log.d("C","Se ha cambiado: ${obtenerUltUsuario()}")
+        delay(1000)
+        var actividades:List<Actividad> =autenticador.obtenerActividades()
+        for (act in actividades){
+            actividadesRepo.insertActividad(act)
+        }
+        Log.d("S","Se procede a obtener la foto:")
+        try {
+            fotoPerfil=autenticador.descargarImagenDePerfil()
+        }
+        catch (e :Exception){
+            fotoPerfil=null
+            Log.d("S","Foto sin conexion")
+        }
+        "success"
+    } catch (e: AuthenticationException) {
+        Log.d("T", "Auth")
+        actividadesRepo.deleteAllActividades()
+        "auth"
+    } catch (e: UserExistsException) {
+        Log.d("T", "Exist")
+        actividadesRepo.deleteAllActividades()
+        "exist"
+    } catch (e: Exception) {
+        Log.d("T", "Otro error")
+        actividadesRepo.deleteAllActividades()
+        "error"
+    }
 
+    suspend fun register(username: String, contraseña: String): String = try {
         val usuario: UsuarioCred = UsuarioCred(username, contraseña)
+        autenticador.register(usuario)
+        "success" // Asumiendo que deseas devolver "success" si no hay excepciones.
+    } catch (e: UserExistsException) {
+        Log.d("T", "user already exists")
+        actividadesRepo.deleteAllActividades()
+        "exist"
+    } catch (e: Exception) {
+        Log.d("T", "Otro error")
+        actividadesRepo.deleteAllActividades()
+        "error"
+    }
+
+    fun logout(){
         viewModelScope.launch {
-            try {
-                val logged = autenticador.authenticate(usuario)
-                Log.d("A",logged.toString())
+            val actividadesApi : List<ActividadApi> =getActividadesApi()
+            autenticador.sincronizarActividades(actividadesApi)
+            settings.saveUserCredentialsAndToken("","")
+            actividadesRepo.deleteAllActividades()
+            delay(200)
+            fotoPerfil=null
+            fotoPerfilPath=null
+        }
 
-            } catch (e: AuthenticationException) {
 
-            } catch (e: UserExistsException) {
+    }
 
-            } catch (e: Exception) {
+    fun sincronizar() {
+        viewModelScope.launch {
+            var error = autenticador.sincronizarActividades(getActividadesApi())
+            if (error == 200) {
+                sincronizacionMessage.value = "Sincronización exitosa"
+            } else {
+                val retry=login(settings.user().first(),settings.password().first())
+                if (retry.equals("success")){
+                    error = autenticador.sincronizarActividades(getActividadesApi())
+                    if (error == 200){
+                        sincronizacionMessage.value = "Sincronización exitosa"
+                    }
+
+                }
+                else if (retry.equals("auth")){
+                    sincronizacionMessage.value = "Error de autenticacion"
+                }
+                else{
+                    sincronizacionMessage.value = "Error de conexión con el servidor"
+                }
 
             }
         }
-        return ("")
+    }
+
+    fun obtenerUltUsuario() : String{
+        var user=""
+        viewModelScope.launch{
+            user=settings.user().first()
+            Log.d("E","Ultimo user del datastore:"+user)
+        }
+        return(user)
+    }
+    suspend fun getActividadesApi(): List<ActividadApi> {
+        // Asegurándonos de esperar a que la transformación se complete.
+        return _actividades.first().map { actividad ->
+            val ubicaciones = ubicacionesRepo.getUbicacionesPorActividadStream(actividad.id).first()
+            val ubicacionesApi = ubicaciones.map { ubicacion ->
+                UbicacionApi(
+                    latitud = ubicacion.latitud,
+                    longitud = ubicacion.longitud
+                )
+            }
+            ActividadApi(
+                id = actividad.id,
+                nombre = actividad.nombre,
+                tiempo = actividad.tiempo,
+                categoria = actividad.categoria,
+                start_time_millis = actividad.startTimeMillis,
+                is_playing = actividad.isPlaying,
+                id_usuario = actividad.idUsuario,
+                fecha = actividad.fecha.toString(),
+                ubicaciones = ubicacionesApi
+            )
+        }
     }
 }
 

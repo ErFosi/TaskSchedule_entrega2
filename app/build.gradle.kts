@@ -116,7 +116,8 @@ dependencies {
     implementation ("io.ktor:ktor-client-auth:$ktor_version")
     implementation ("io.ktor:ktor-client-cio:$ktor_version")
     //implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
 
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
     implementation ("io.ktor:ktor-client-serialization-jvm:$ktor_version")
+    implementation ("androidx.activity:activity-compose:1.8.2")
 }

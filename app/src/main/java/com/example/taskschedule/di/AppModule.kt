@@ -9,7 +9,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
-
+import com.example.taskschedule.utils.AESCipher
 /************************************************************************
  * Clase que se encarga de las dependencias con Hilt. En esta app
  * solo se usa singleton y en la función provides se puede ver lo que Hilt
@@ -33,4 +33,12 @@ object AppModule {
     @Singleton
     @Provides
     fun provideActividades(db:ActividadesDatabase)=db.actividadDao()
+
+    @Singleton
+    @Provides
+    fun provideUbicaciones(db:ActividadesDatabase)=db.ubicacionDao()
+
+    @Singleton
+    @Provides
+    fun provideCipher(): AESCipher = AESCipher()
 }
