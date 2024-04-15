@@ -19,5 +19,9 @@ class UbicacionesRepository @Inject constructor(private val ubicacionDao: Ubicac
     override suspend fun deleteUbicacion(ubicacion: Ubicacion) = ubicacionDao.deleteUbicacion(ubicacion)
 
     override suspend fun updateUbicacion(ubicacion: Ubicacion) = ubicacionDao.updateUbicacion(ubicacion)
+    suspend fun deleteAllUbiss() {
+        ubicacionDao.deleteAllUbis()
+    }
+
 
 }

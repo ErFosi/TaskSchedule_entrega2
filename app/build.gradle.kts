@@ -6,14 +6,12 @@ plugins {
     id ("com.google.dagger.hilt.android")
 
     id("org.jetbrains.kotlin.plugin.serialization") version "1.9.0"
-
-
+    id("com.google.gms.google-services")
 }
 
 android {
     namespace = "com.example.taskschedule"
     compileSdk = 34
-
     defaultConfig {
         applicationId = "com.example.taskschedule"
         minSdk = 26
@@ -70,6 +68,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
     implementation("androidx.wear.compose:compose-material:1.3.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("com.google.firebase:firebase-messaging-ktx:23.4.1")
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
@@ -120,4 +121,23 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
     implementation ("io.ktor:ktor-client-serialization-jvm:$ktor_version")
     implementation ("androidx.activity:activity-compose:1.8.2")
+
+    //firebase
+    implementation(platform("com.google.firebase:firebase-bom:32.8.1"))
+    implementation("com.google.firebase:firebase-analytics")
+
+    //Widgets en compose
+    implementation ("androidx.glance:glance-appwidget:1.0.0")
+    implementation ("androidx.glance:glance-material:1.0.0")
+    implementation ("androidx.glance:glance-material3:1.0.0")
+
+    implementation ("androidx.hilt:hilt-work:1.0.0")
+
+    implementation ("androidx.work:work-runtime-ktx:2.7.1")
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0")
+
+    implementation ("com.google.android.gms:play-services-location:21.2.0")
+    implementation ("com.google.android.gms:play-services-maps:18.2.0")
+    implementation ("com.google.maps.android:maps-compose:2.5.0")
+    implementation ("com.google.maps.android:maps-utils-ktx:3.4.0")
 }

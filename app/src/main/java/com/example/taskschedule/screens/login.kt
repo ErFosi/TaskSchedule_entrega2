@@ -31,6 +31,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.animation.*
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
@@ -57,6 +58,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -64,6 +66,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.ContentAlpha
+import com.example.taskschedule.R
 import com.example.taskschedule.viewmodels.ActivitiesViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -120,12 +123,12 @@ fun LoginScreen(mainViewModel: ActivitiesViewModel, navController: NavHostContro
     ) {
         AnimatedDiagonalLinesBackground()
         if (isLoading) {
-            CircularProgressIndicator() // Muestra la animación de carga
+            CircularProgressIndicator(modifier = Modifier.size(40.dp)) // Muestra la animación de carga
         } else {
             var showDialog = userExistsDialog || serverErrorDialog || passwordError || contrasñaDebil || authError
 
-            val dialogTitle = if (userExistsDialog) "Error" else if(passwordError) "Contraseñas no coinciden" else if(authError) "Credenciales Invalidos" else if(contrasñaDebil) "Contraseña debil" else "Error de conexión"
-            val dialogText = if (userExistsDialog) "El usuario ya existe." else if (passwordError) "Las contraseñas deben coincidir" else if(authError) "Credenciales invalidos" else if(contrasñaDebil) "La contrasña debe tener 6 caracteres, una mayuscula y minuscula"  else "Ha habido un error en la conexión con el servidor."
+            val dialogTitle = if (userExistsDialog) "Error" else if(passwordError) stringResource(R.string.contrNoCoinc) else if(authError) stringResource(R.string.credInv) else if(contrasñaDebil) stringResource(R.string.contrDebil) else stringResource(R.string.conexErr)
+            val dialogText = if (userExistsDialog) stringResource(R.string.userEx) else if (passwordError) stringResource(R.string.contrCoincEr) else if(authError)  stringResource(R.string.credInv) else if(contrasñaDebil) stringResource(R.string.contrSegurt)  else stringResource(R.string.errConex)
             //dialogos de errores
             if (showDialog) {
                 AlertDialog(
@@ -174,7 +177,7 @@ fun LoginScreen(mainViewModel: ActivitiesViewModel, navController: NavHostContro
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        "Member Auth",
+                        stringResource(R.string.memeberAuth),
                         style = MaterialTheme.typography.titleLarge.copy(color = primaryColor),
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
@@ -182,10 +185,10 @@ fun LoginScreen(mainViewModel: ActivitiesViewModel, navController: NavHostContro
                     TextField(
                         value = username,
                         onValueChange = { username = it },
-                        label = { Text("Username") },
+                        label = { Text(stringResource(R.string.username)) },
                         singleLine = true,
                         leadingIcon = {
-                            Icon(Icons.Filled.Person, contentDescription = "Username")
+                            Icon(Icons.Filled.Person, contentDescription = stringResource(R.string.username))
                         },
                         colors = TextFieldDefaults.textFieldColors(
                             errorContainerColor = if(authError) Color.Red.copy(alpha = 0.1f) else MaterialTheme.colorScheme.surface,
@@ -200,11 +203,11 @@ fun LoginScreen(mainViewModel: ActivitiesViewModel, navController: NavHostContro
                     TextField(
                         value = password,
                         onValueChange = { password = it },
-                        label = { Text("Password") },
+                        label = { Text(stringResource(R.string.contraseña)) },
                         singleLine = true,
                         visualTransformation = if(passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
                         leadingIcon = {
-                            Icon(Icons.Filled.Lock, contentDescription = "Password")
+                            Icon(Icons.Filled.Lock, contentDescription = stringResource(R.string.contraseña))
                         },
                         trailingIcon = {
                             val image = if (passwordVisibility)
@@ -213,7 +216,7 @@ fun LoginScreen(mainViewModel: ActivitiesViewModel, navController: NavHostContro
                                 Icons.Filled.VisibilityOff
 
                             IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
-                                Icon(image, "Toggle password visibility")
+                                Icon(image, stringResource(R.string.toggleVis))
                             }
                         },
                         colors = TextFieldDefaults.textFieldColors(
@@ -231,11 +234,11 @@ fun LoginScreen(mainViewModel: ActivitiesViewModel, navController: NavHostContro
                         TextField(
                             value = confirmPassword,
                             onValueChange = { confirmPassword = it },
-                            label = { Text("Confirm Password") },
+                            label = { Text(stringResource(R.string.confirmContr)) },
                             singleLine = true,
                             visualTransformation = if(confirmPasswordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
                             leadingIcon = {
-                                Icon(Icons.Filled.Lock, contentDescription = "Confirm Password")
+                                Icon(Icons.Filled.Lock, contentDescription = stringResource(R.string.confirmContr))
                             },
                             trailingIcon = {
                                 val image = if (confirmPasswordVisibility)
@@ -244,7 +247,7 @@ fun LoginScreen(mainViewModel: ActivitiesViewModel, navController: NavHostContro
                                     Icons.Filled.VisibilityOff
 
                                 IconButton(onClick = { confirmPasswordVisibility = !confirmPasswordVisibility }) {
-                                    Icon(image, "Toggle password visibility")
+                                    Icon(image, stringResource(R.string.toggleVis))
                                 }
                             },
                             colors = TextFieldDefaults.textFieldColors(
@@ -326,14 +329,14 @@ fun LoginScreen(mainViewModel: ActivitiesViewModel, navController: NavHostContro
                             colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
                         ) {
                             Text(
-                                text = if (nuevoUsuario) "REGISTER" else "LOGIN",
+                                text = if (nuevoUsuario) stringResource(R.string.register) else stringResource(R.string.login),
                                 color = onPrimaryColor
                             )
                         }
                         Text(
-                            "New User?",
+                            stringResource(R.string.newUs),
                             modifier = Modifier
-                                .padding(horizontal = 4.dp)
+                                .padding(horizontal = 4.dp).width(90.dp)
                         )
 
 

@@ -6,12 +6,15 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.location.Location
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.taskschedule.MainActivity
@@ -20,6 +23,7 @@ import com.example.taskschedule.data.Actividad
 import com.example.taskschedule.data.ActividadApi
 import com.example.taskschedule.data.Idioma
 import com.example.taskschedule.data.ProfilePreferencesDataStore
+import com.example.taskschedule.data.Ubicacion
 import com.example.taskschedule.data.UbicacionApi
 import com.example.taskschedule.repositories.ActividadesRepository
 import com.example.taskschedule.utils.WebClient
@@ -35,9 +39,15 @@ import kotlinx.coroutines.flow.first
 import java.time.LocalDate
 import kotlin.random.Random
 import com.example.taskschedule.data.UsuarioCred
+import com.example.taskschedule.repositories.GoogleLocationsRepository
 import com.example.taskschedule.repositories.UbicacionesRepository
 import com.example.taskschedule.utils.AuthenticationException
 import com.example.taskschedule.utils.UserExistsException
+import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.forEach
+import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.tasks.await
 
 
 /************************************************************************
@@ -52,8 +62,10 @@ private val settings:ProfilePreferencesDataStore,
 private val languageManager: LanguageManager,
     private val actividadesRepo: ActividadesRepository,
     private val ubicacionesRepo: UbicacionesRepository,
-    private val autenticador: WebClient
+    private val httpClient: WebClient,
+    private val locationsRepository: GoogleLocationsRepository
 ): ViewModel() {
+    private val firebaseMessaging = FirebaseMessaging.getInstance()
     val lastLogged = settings.settingsFlow.map { it.usuario }
     val oscuro = settings.settingsFlow.map { it.oscuro }
     val idioma = settings.settingsFlow.map { it.idioma }
@@ -74,11 +86,13 @@ private val languageManager: LanguageManager,
             changeLang(Idioma.getFromCode(settings.language().first()))
             Log.d("I", "Se inicia la app con el idioma:" + settings.language().first())
             if (!settings.user().equals("")){
-                login(settings.user().first(),settings.password().first())
+                Log.d("I", "SE HACE LOG IN AL INIT")
+                loginInit(settings.user().first(),settings.password().first())
             }
 
 
         }
+        fetchLastLocation()
 
 
     }
@@ -94,7 +108,7 @@ private val languageManager: LanguageManager,
         viewModelScope.launch(Dispatchers.IO) {
             fotoPerfil = null
             try {
-                autenticador.uploadUserProfile(image)
+                httpClient.uploadUserProfile(image)
                 fotoPerfil=image
 
             }
@@ -128,15 +142,20 @@ private val languageManager: LanguageManager,
      * Función que dado un nombre crea una nueva actividad y la inserta en la
      * BD mediante el DAO
      *************************************************************************/
-    fun agregarActividad(nombre: String) {
+    fun agregarActividad( nombre: String) {
 
         val nuevaActividad = Actividad(
             nombre = nombre, id = 0
         ) //el id es autogenerado ya que es autogenerate (esto se ve en data/data.kt donde está la entidad)
         viewModelScope.launch {
             actividadesRepo.insertActividad(nuevaActividad)
+
         }
     }
+
+
+
+
 
     /************************************************************************
      * Función que se encarga de la logica detrás del boton de play donde
@@ -152,6 +171,7 @@ private val languageManager: LanguageManager,
             currentActividad.tiempo += diff.toInt()
             currentActividad.isPlaying = false
         } else {
+            agregarUbi(actividad)
             currentActividad.startTimeMillis = System.currentTimeMillis()
             currentActividad.isPlaying = true
             sendNotification(actividad, context)
@@ -163,6 +183,55 @@ private val languageManager: LanguageManager,
 
     }
 
+    fun agregarUbi(actividad: Actividad){
+
+        viewModelScope.launch {
+            val currentLocation = locationsRepository.getLastLocation()
+            currentLocation?.let { location ->
+                val nuevaUbi = Ubicacion(
+                    actividadId = actividad.id,
+                    latitud = location.latitude,
+                    longitud = location.longitude
+                )
+                Log.d("Localizacion", "Se va a agregar la ubicacion")
+                val ubis = ubicacionesRepo.getUbicacionesPorActividadStream(actividad.id)
+                var demasiadoCerca = false
+
+                // Recolectar todas las ubicaciones y luego decidir
+                ubis.collect { ubisList ->
+                    ubisList.forEach { ubi ->
+                        val distancia = locationsRepository.calcularDistancia(
+                            ubi.latitud, ubi.longitud, location.latitude, location.longitude
+                        )
+                        if (distancia < 500) {
+                            demasiadoCerca = true
+                        }
+                    }
+                    // Verificar después de recolectar todas las ubicaciones
+                    if (!demasiadoCerca) {
+                        Log.d("Localizacion", "Se agregó la ubicación")
+                        ubicacionesRepo.insertUbicacion(nuevaUbi)
+                    } else {
+                        Log.d("Localizacion", "Demasiado cerca")
+                    }
+                }
+            }
+        }
+    }
+
+   fun obtenerUbis(actividad: Actividad): Flow<List<Ubicacion>> {
+        val ubicaciones =ubicacionesRepo.getUbicacionesPorActividadStream(actividad.id)
+
+        return(ubicaciones)
+    }
+    private val _location = MutableLiveData<Location?>()
+    val location: LiveData<Location?> = _location
+    fun fetchLastLocation() {
+        viewModelScope.launch {
+            val lastLocation = locationsRepository.getLastLocation()
+            _location.postValue(lastLocation)
+        }
+    }
 
     /************************************************************************
      * Método para actualizar la categoría de una actividad
@@ -277,59 +346,151 @@ private val languageManager: LanguageManager,
 
     suspend fun login(username: String, contraseña: String): String = try {
         val usuario = UsuarioCred(username, contraseña)
-        autenticador.authenticate(usuario)
+        httpClient.authenticate(usuario)
         Log.d("T","logged usuario: $username")
         Log.d("T","Se almacenará el usuario: $username")
         settings.saveUserCredentialsAndToken(username, contraseña)
         Log.d("C","Se ha cambiado: ${obtenerUltUsuario()}")
         delay(1000)
-        var actividades:List<Actividad> =autenticador.obtenerActividades()
-        for (act in actividades){
-            actividadesRepo.insertActividad(act)
+        try {
+            var actividades:List<ActividadApi> =httpClient.obtenerActividades()
+            actividadesRepo.deleteAllActividades()
+            ubicacionesRepo.deleteAllUbiss()
+            for (actApi in actividades){
+
+                val actividad = Actividad(
+                    id = actApi.id,
+                    nombre = actApi.nombre,
+                    tiempo = actApi.tiempo,
+                    categoria = actApi.categoria,
+                    startTimeMillis = actApi.start_time_millis,
+                    isPlaying = actApi.is_playing,
+                    idUsuario = actApi.id_usuario,
+                    fecha = LocalDate.parse(actApi.fecha) // Suponiendo que la fecha está en un formato compatible con LocalDate.parse
+                )
+                actividadesRepo.insertActividad(actividad)
+                for (ubicacionApi in actApi.ubicaciones) {
+                    val ubicacion = Ubicacion(
+                        actividadId = actividad.id,
+                        latitud = ubicacionApi.latitud,
+                        longitud = ubicacionApi.longitud
+                    )
+                    ubicacionesRepo.insertUbicacion(ubicacion)
+                }
+            }
         }
+        catch (e: Exception) {
+            // En caso de error, asigna a actividades una lista vacía mutable
+            Log.d("S","No se pudo obtener la lista de actividades")
+        }
+
+
         Log.d("S","Se procede a obtener la foto:")
         try {
-            fotoPerfil=autenticador.descargarImagenDePerfil()
+            fotoPerfil=httpClient.descargarImagenDePerfil()
         }
         catch (e :Exception){
             fotoPerfil=null
             Log.d("S","Foto sin conexion")
         }
+        subscribe()
         "success"
     } catch (e: AuthenticationException) {
         Log.d("T", "Auth")
         actividadesRepo.deleteAllActividades()
+        ubicacionesRepo.deleteAllUbiss()
         "auth"
     } catch (e: UserExistsException) {
         Log.d("T", "Exist")
         actividadesRepo.deleteAllActividades()
+        ubicacionesRepo.deleteAllUbiss()
         "exist"
     } catch (e: Exception) {
         Log.d("T", "Otro error")
         actividadesRepo.deleteAllActividades()
+        ubicacionesRepo.deleteAllUbiss()
         "error"
     }
 
+    suspend fun loginInit(username: String, contraseña: String): String = try {
+        val usuario = UsuarioCred(username, contraseña)
+        httpClient.authenticate(usuario)
+        Log.d("T","logged usuario: $username")
+        Log.d("T","Se almacenará el usuario: $username")
+        settings.saveUserCredentialsAndToken(username, contraseña)
+        Log.d("C","Se ha cambiado: ${obtenerUltUsuario()}")
+        delay(1000)
+
+
+        Log.d("S","Se procede a obtener la foto:")
+        try {
+            fotoPerfil=httpClient.descargarImagenDePerfil()
+        }
+        catch (e :Exception){
+            fotoPerfil=null
+            Log.d("S","Foto sin conexion")
+        }
+        subscribe()
+        "success"
+    } catch (e: AuthenticationException) {
+        Log.d("T", "Auth")
+        actividadesRepo.deleteAllActividades()
+        ubicacionesRepo.deleteAllUbiss()
+        "auth"
+    } catch (e: UserExistsException) {
+        Log.d("T", "Exist")
+        actividadesRepo.deleteAllActividades()
+        ubicacionesRepo.deleteAllUbiss()
+        "exist"
+    } catch (e: Exception) {
+        Log.d("T", "Otro error")
+        actividadesRepo.deleteAllActividades()
+        ubicacionesRepo.deleteAllUbiss()
+        "error"
+    }
+    fun subscribe(){
+        viewModelScope.launch {
+            try {
+                // Eliminar el token anterior de forma segura
+                firebaseMessaging.deleteToken().await()
+
+                Log.d("FCM", "Token deleted")
+
+                // Obtener un nuevo token
+                val newToken = firebaseMessaging.token.await()
+                Log.d("FCM", "New Token $newToken")
+
+                // Suscribir el usuario en el servidor usando el nuevo token
+                httpClient.subscribeUser(newToken)
+
+            } catch (e: Exception) {
+                Log.d("FCM", "Error subscribing user", e)
+            }
+        }
+    }
     suspend fun register(username: String, contraseña: String): String = try {
         val usuario: UsuarioCred = UsuarioCred(username, contraseña)
-        autenticador.register(usuario)
+        httpClient.register(usuario)
         "success" // Asumiendo que deseas devolver "success" si no hay excepciones.
     } catch (e: UserExistsException) {
         Log.d("T", "user already exists")
         actividadesRepo.deleteAllActividades()
+        ubicacionesRepo.deleteAllUbiss()
         "exist"
     } catch (e: Exception) {
         Log.d("T", "Otro error")
         actividadesRepo.deleteAllActividades()
+        ubicacionesRepo.deleteAllUbiss()
         "error"
     }
 
     fun logout(){
         viewModelScope.launch {
             val actividadesApi : List<ActividadApi> =getActividadesApi()
-            autenticador.sincronizarActividades(actividadesApi)
+            httpClient.sincronizarActividades(actividadesApi)
             settings.saveUserCredentialsAndToken("","")
             actividadesRepo.deleteAllActividades()
+            ubicacionesRepo.deleteAllUbiss()
             delay(200)
             fotoPerfil=null
             fotoPerfilPath=null
@@ -340,13 +501,13 @@ private val languageManager: LanguageManager,
 
     fun sincronizar() {
         viewModelScope.launch {
-            var error = autenticador.sincronizarActividades(getActividadesApi())
+            var error = httpClient.sincronizarActividades(getActividadesApi())
             if (error == 200) {
                 sincronizacionMessage.value = "Sincronización exitosa"
             } else {
                 val retry=login(settings.user().first(),settings.password().first())
                 if (retry.equals("success")){
-                    error = autenticador.sincronizarActividades(getActividadesApi())
+                    error = httpClient.sincronizarActividades(getActividadesApi())
                     if (error == 200){
                         sincronizacionMessage.value = "Sincronización exitosa"
                     }
@@ -359,6 +520,17 @@ private val languageManager: LanguageManager,
                     sincronizacionMessage.value = "Error de conexión con el servidor"
                 }
 
+            }
+        }
+    }
+
+    fun probarFCM(){
+        viewModelScope.launch {
+            try{
+                httpClient.testFCM()
+            }
+            catch (e: Exception){
+                Log.d("d","No se pudo testear el FCM")
             }
         }
     }
@@ -394,5 +566,7 @@ private val languageManager: LanguageManager,
             )
         }
     }
+
+
 }
 

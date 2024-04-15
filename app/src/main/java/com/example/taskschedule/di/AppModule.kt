@@ -38,6 +38,8 @@ object AppModule {
     @Provides
     fun provideUbicaciones(db:ActividadesDatabase)=db.ubicacionDao()
 
+
+
     @Singleton
     @Provides
     fun provideCipher(): AESCipher = AESCipher()

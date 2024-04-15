@@ -1,6 +1,15 @@
 package com.example.taskschedule.screens
+import android.accounts.AccountManager
+import android.annotation.SuppressLint
+import android.content.ContentResolver
+import android.content.ContentUris
+import android.content.ContentValues
+import android.content.Context
 import android.content.res.Configuration
+import android.net.Uri
+import android.provider.CalendarContract
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.core.LinearEasing
@@ -24,6 +33,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.AlertDialog
@@ -47,6 +57,7 @@ import androidx.compose.ui.graphics.Color
 
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -63,7 +74,25 @@ import com.example.taskschedule.viewmodels.ActivitiesViewModel
 import com.example.taskschedule.data.Actividad
 import kotlinx.coroutines.delay
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
 import com.example.taskschedule.R
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.MapView
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
+import com.google.android.gms.maps.model.MarkerOptions
+import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.MapType
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
+import java.util.TimeZone
+import com.google.maps.android.compose.GoogleMap as GoogleMap
+
+
 
 /*************************************************************************
  * Esta función es la linea animada que aparece cuando se le da al play.
@@ -109,10 +138,12 @@ fun actividad(actividad: Actividad, actividadesViewModel: ActivitiesViewModel) {
     val gradientBrush = Brush.horizontalGradient(
         colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)
     )
+    var context =LocalContext.current
     val backgroundColor = MaterialTheme.colorScheme.background
     val iconTint = MaterialTheme.colorScheme.onSurfaceVariant
     val isVisible = remember { mutableStateOf(true) }
     var expanded by remember { mutableStateOf(false) }
+    var showMapDialog by remember { mutableStateOf(false) }
     val categoriasMap = mapOf(
         stringResource(id = R.string.otros) to "Otros",
         stringResource(id = R.string.ocio) to "Ocio",
@@ -135,6 +166,14 @@ fun actividad(actividad: Actividad, actividadesViewModel: ActivitiesViewModel) {
             delay(199)
             isVisible.value = true
             actividadesViewModel.onRemoveClick(actividad.id)
+        }
+    }
+
+    if (showMapDialog) {
+        Dialog(onDismissRequest = {showMapDialog=false}) {
+            Box(modifier = Modifier.size(300.dp, 400.dp)) {  // Ajusta el tamaño según necesites
+                MapContainer(actividad, actividadesViewModel, {showMapDialog=false})
+            }
         }
     }
 
@@ -221,6 +260,13 @@ fun actividad(actividad: Actividad, actividadesViewModel: ActivitiesViewModel) {
                             horizontalArrangement = Arrangement.End,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            IconButton(onClick = { showMapDialog = true }) {
+                                Icon(
+                                    imageVector = Icons.Default.LocationOn,
+                                    contentDescription = "Ubicaciones",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
                             IconButton(onClick = { actividadesViewModel.togglePlay(actividad,
                                 contex) }) {
                                 Icon(
@@ -256,6 +302,54 @@ fun actividad(actividad: Actividad, actividadesViewModel: ActivitiesViewModel) {
     }
 }
 
+
+@Composable
+fun MapContainer(actividad: Actividad, viewModel: ActivitiesViewModel, onDismiss: () -> Unit) {
+    val ubicaciones = viewModel.obtenerUbis(actividad).collectAsState(initial = emptyList()).value
+
+    val location = viewModel.location.value
+
+    Log.d("MapDebug", "Ubicaciones: $ubicaciones")
+    val cameraPositionState = rememberCameraPositionState {
+        // Establece una posición predeterminada si la ubicación es null
+        val initialPosition = location?.let {
+            LatLng(it.latitude, it.longitude)
+        } ?: LatLng(43.2627, -2.9253) // Posición predeterminada, por ejemplo Bilbao
+        position = CameraPosition.fromLatLngZoom(initialPosition, 10f)
+    }
+
+    LaunchedEffect(ubicaciones) {
+        // Hacer zoom a la ubicación actual solo si no hay ubicaciones de actividades disponibles
+        try{
+            Log.d("Ubi","Mover a la posicion de loc")
+            Log.d("Ubi",location.toString())
+            location?.let {
+                cameraPositionState.move(CameraUpdateFactory.newLatLngZoom(LatLng(it.latitude.toDouble(), it.longitude.toDouble()), 10f.toFloat()))
+            }
+        }
+        catch (e: Exception){
+            Log.d("Ubi","No se pudo mover a ubi inicial")
+        }
+    }
+
+    GoogleMap(cameraPositionState = cameraPositionState,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(all = 16.dp),
+        properties = MapProperties(
+            isMyLocationEnabled = true  
+        )
+    ) {
+        ubicaciones.forEach { ubicacion ->
+            Marker(
+                state = MarkerState(position = LatLng(ubicacion.latitud, ubicacion.longitud)),
+                title = actividad.nombre,
+                snippet = "Lat: ${ubicacion.latitud}, Lng: ${ubicacion.longitud}"
+            )
+        }
+    }
+}
+
 /************************************************************************
  * Composable que contiene la estructura de la lista de actividades
  * se encarga de poner el botón y de los diálogos para la creación de
@@ -269,6 +363,14 @@ fun actividad(actividad: Actividad, actividadesViewModel: ActivitiesViewModel) {
 fun ListaActividadesUI(actividadesViewModel: ActivitiesViewModel) {
     val showDialog = remember { mutableStateOf(false) }
     val textState = remember { mutableStateOf("") }
+    val context= LocalContext
+    val lanzarCalendar = remember{ mutableStateOf(false) }
+    val ultimotxt = remember { mutableStateOf("") }
+
+
+
+
+
 
     Scaffold(
         floatingActionButton = {
@@ -305,8 +407,10 @@ fun ListaActividadesUI(actividadesViewModel: ActivitiesViewModel) {
                 Button(
                     onClick = {
                         actividadesViewModel.agregarActividad(textState.value)
+                        ultimotxt.value=textState.value
                         showDialog.value = false
                         textState.value = ""
+                        lanzarCalendar.value=true
                     }
                 ) {
                     Text(stringResource(id = R.string.agregar))
@@ -319,7 +423,123 @@ fun ListaActividadesUI(actividadesViewModel: ActivitiesViewModel) {
             }
         )
     }
+    if (lanzarCalendar.value){
+        agregarEventoCalendario(nombre = ultimotxt.value)
+        ultimotxt.value=""
+        lanzarCalendar.value=false
+    }
 }
+
+
+
+@SuppressLint("Range")
+@Composable
+fun crearCalendarioSiNoExiste(): Long {
+    val context = LocalContext.current
+    val contentResolver = context.contentResolver
+
+    // Intentar obtener la cuenta de correo de un calendario existente
+    val accountName: String? = obtenerEmailDeCalendarioExistente(contentResolver)
+        ?: obtenerCuentaEmailPrincipal(context) // Obtener la cuenta principal si no hay calendarios
+
+    // Si no se encuentra ninguna cuenta, no se puede continuar
+    if (accountName.isNullOrEmpty()) {
+        Log.d("Calendar", "No se encontró una cuenta de correo válida.")
+        return -1
+    }
+
+    // Verificar si el calendario "TaskSchedule" ya existe
+    val cursor = contentResolver.query(
+        CalendarContract.Calendars.CONTENT_URI,
+        arrayOf(CalendarContract.Calendars._ID),
+        "${CalendarContract.Calendars.ACCOUNT_NAME} = ? AND ${CalendarContract.Calendars.NAME} = ?",
+        arrayOf(accountName, "TaskSchedule"),
+        null
+    )
+    cursor?.use {
+        if (it.moveToFirst()) {
+            val calId = it.getLong(it.getColumnIndex(CalendarContract.Calendars._ID))
+            Log.d("Calendar", "Calendario ya existe: ID=$calId en la cuenta $accountName")
+            return calId // Retorna el ID si ya existe
+
+        }
+    }
+
+    // Crear el calendario si no existe
+    val values = ContentValues().apply {
+        put(CalendarContract.Calendars.ACCOUNT_NAME, accountName)
+        put(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
+        put(CalendarContract.Calendars.NAME, "TaskSchedule_Calendar")
+        put(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME, "TaskSchedule_Calendar")
+        put(CalendarContract.Calendars.CALENDAR_COLOR, 0x0099CC) // Azul claro como ejemplo
+        put(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL, CalendarContract.Calendars.CAL_ACCESS_OWNER)
+        put(CalendarContract.Calendars.OWNER_ACCOUNT, accountName)
+        put(CalendarContract.Calendars.CALENDAR_TIME_ZONE, TimeZone.getDefault().id)
+        put(CalendarContract.Calendars.VISIBLE, 1)
+        put(CalendarContract.Calendars.SYNC_EVENTS, 1)
+    }
+
+    val baseUri = Uri.parse("${CalendarContract.Calendars.CONTENT_URI}?${CalendarContract.CALLER_IS_SYNCADAPTER}=true&${CalendarContract.Calendars.ACCOUNT_NAME}=${accountName}&${CalendarContract.Calendars.ACCOUNT_TYPE}=${CalendarContract.ACCOUNT_TYPE_LOCAL}")
+    val resultUri = contentResolver.insert(baseUri, values)
+    val calendarId = ContentUris.parseId(resultUri!!)
+    Log.d("Calendar", "Calendario creado: ID=$resultUri")
+    Log.d("Calendar", "Calendario creado: ID=$calendarId")
+
+    return calendarId
+}
+
+@SuppressLint("Range")
+fun obtenerEmailDeCalendarioExistente(contentResolver: ContentResolver): String? {
+    val projection = arrayOf(
+        CalendarContract.Calendars.ACCOUNT_NAME
+    )
+    val cursor = contentResolver.query(
+        CalendarContract.Calendars.CONTENT_URI,
+        projection,
+        null,
+        null,
+        null
+    )
+    cursor?.use {
+        if (it.moveToFirst()) {
+            return it.getString(it.getColumnIndex(CalendarContract.Calendars.ACCOUNT_NAME))
+        }
+    }
+    return null
+}
+
+fun obtenerCuentaEmailPrincipal(context: Context): String? {
+    val accounts = AccountManager.get(context).getAccountsByType("com.google")
+    return accounts.firstOrNull()?.name
+}
+@Composable
+fun agregarEventoCalendario(nombre: String) {
+    val context = LocalContext.current
+    val contentResolver = context.contentResolver
+    val values = ContentValues().apply {
+        val inicio = System.currentTimeMillis()
+        val fin = inicio + (2 * 60 * 60 * 1000) // Por ejemplo, evento de 2 horas
+
+        put(CalendarContract.Events.DTSTART, inicio)
+        put(CalendarContract.Events.DTEND, fin)
+        put(CalendarContract.Events.TITLE, nombre)
+        put(CalendarContract.Events.DESCRIPTION, "Descripción del evento")
+        put(CalendarContract.Events.CALENDAR_ID, crearCalendarioSiNoExiste())
+        put(CalendarContract.Events.EVENT_TIMEZONE, TimeZone.getDefault().id)
+    }
+
+
+        val uri = contentResolver.insert(CalendarContract.Events.CONTENT_URI, values)
+        if (uri != null) {
+            // Evento agregado correctamente
+            val eventId = ContentUris.parseId(uri)
+            Toast.makeText(context, "Evento agregado: ID=$eventId", Toast.LENGTH_SHORT).show()
+        } else {
+            // Manejo de error
+            Toast.makeText(context, "Error al agregar el evento", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 /************************************************************************
  * Composable que itera sobre la lista de actividades del dia actual
  * generando un lazy column si el movil está en vertical y un lazyVerticalGrid

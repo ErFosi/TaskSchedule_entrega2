@@ -23,4 +23,6 @@ interface UbicacionDao {
 
     @Query("SELECT * FROM ubicaciones WHERE actividadId = :actividadId")
     fun obtenerUbicacionesPorActividad(actividadId: Int): Flow<List<Ubicacion>>
+    @Query("DELETE FROM ubicaciones")
+    suspend fun deleteAllUbis()
 }

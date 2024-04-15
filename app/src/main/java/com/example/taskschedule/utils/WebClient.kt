@@ -26,6 +26,7 @@ import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.readBytes
 import io.ktor.util.InternalAPI
@@ -62,7 +63,7 @@ class WebClient @Inject constructor() {
     @Throws(AuthenticationException::class, Exception::class)
     suspend fun authenticate(user: UsuarioCred) {
         val tokenInfo: TokenInfo = clienteHttp.submitForm(
-            url = "http://172.20.80.1:8000/token",
+            url = "http://34.175.97.114:8000/token",
             formParameters = Parameters.build {
                 append("grant_type", "password")
                 append("username", user.usuario)
@@ -75,7 +76,7 @@ class WebClient @Inject constructor() {
 
     @Throws(UserExistsException::class, Exception::class)
     suspend fun register(user: UsuarioCred) {
-        val usuarioReg: UsuarioResponse = clienteHttp.post("http://172.20.80.1:8000/usuarios/") {
+        val usuarioReg: UsuarioResponse = clienteHttp.post("http://34.175.97.114:8000/usuarios/") {
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
             body = """
@@ -89,13 +90,13 @@ class WebClient @Inject constructor() {
     }
 
     @Throws(AuthenticationException::class, Exception::class)
-    suspend fun obtenerActividades(): List<Actividad> {
-        val actividadesApi: List<ActividadApi> = clienteHttp.get("http://172.20.80.1:8000/mis_actividades/") {
+    suspend fun obtenerActividades(): List<ActividadApi> {
+        val actividadesApi: List<ActividadApi> = clienteHttp.get("http://34.175.97.114:8000/mis_actividades/") {
             bearerAuth(bearerTokenStorage.last().accessToken)
             accept(ContentType.Application.Json)
         }.body()
 
-        return actividadesApi.map { convertirApiActividadAActividad(it) }
+        return actividadesApi
 
     }
     @Throws(AuthenticationException::class, Exception::class)
@@ -104,7 +105,7 @@ class WebClient @Inject constructor() {
         val jsonActividades = Json.encodeToString(mapOf("actividades" to actividadesApi))
         Log.d("E",jsonActividades)
         try {
-            val respuesta: RespuestaServidor = clienteHttp.post("http://172.20.80.1:8000/sincronizar_actividades/") {
+            val respuesta: RespuestaServidor = clienteHttp.post("http://34.175.97.114:8000/sincronizar_actividades/") {
                 contentType(ContentType.Application.Json)
                 accept(ContentType.Application.Json)
                 bearerAuth(bearerTokenStorage.last().accessToken)
@@ -132,7 +133,7 @@ class WebClient @Inject constructor() {
 
     @Throws(AuthenticationException::class, Exception::class)
     suspend fun descargarImagenDePerfil(): Bitmap {
-        val httpResponse: HttpResponse = clienteHttp.get("http://172.20.80.1:8000/profile/image") {
+        val httpResponse: HttpResponse = clienteHttp.get("http://34.175.97.114:8000/profile/image") {
             bearerAuth(bearerTokenStorage.last().accessToken)
         }
 
@@ -150,7 +151,7 @@ class WebClient @Inject constructor() {
 
     suspend fun uploadUserProfile(image: Bitmap) {
         val stream = ByteArrayOutputStream()
-        image.compress(Bitmap.CompressFormat.PNG, 100, stream)
+        image.compress(Bitmap.CompressFormat.JPEG, 75, stream)
         val byteArray = stream.toByteArray()
 
         // Obtiene el último token de acceso. Asegúrate de manejar la posibilidad de que esto pueda ser nulo o inválido.
@@ -158,17 +159,41 @@ class WebClient @Inject constructor() {
 
         // Realiza la solicitud de subida con el método POST.
         clienteHttp.submitFormWithBinaryData(
-            url = "http://172.20.80.1:8000/profile/image", // Asegúrate de que la URL es correcta y usa HTTP o HTTPS según sea necesario.
+            url = "http://34.175.97.114:8000/profile/image", // Asegúrate de que la URL es correcta y usa HTTP o HTTPS según sea necesario.
             formData = formData {
                 append("file", byteArray, Headers.build {
-                    append(HttpHeaders.ContentType, "image/png")
-                    append(HttpHeaders.ContentDisposition, "filename=profile_image.png")
+                    append(HttpHeaders.ContentType, "image/jpeg")
+                    append(HttpHeaders.ContentDisposition, "filename=profile_image.jpg")
                 })
             }
         ) {
             method = HttpMethod.Post // Aquí especificamos que queremos usar el método POST.
             // Agrega el token de autorización en el encabezado si es necesario.
             header(HttpHeaders.Authorization, "Bearer $token")
+        }
+    }
+
+    suspend fun subscribeUser(FCMClientToken: String) {
+        val token = bearerTokenStorage.last().accessToken
+        clienteHttp.post("http://34.175.97.114:8000/sub_a_act") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+            contentType(ContentType.Application.Json)
+            setBody(mapOf("fcm_client_token" to FCMClientToken))
+        }
+    }
+    suspend fun testFCM() {
+        val client = HttpClient()
+        try {
+            val token = bearerTokenStorage.last().accessToken
+            val response: HttpResponse = clienteHttp.post("http://34.175.97.114:8000/testactividades") {
+                header(HttpHeaders.Authorization, "Bearer $token")
+                contentType(ContentType.Application.Json)
+            }
+            println("Response status: ${response.status}")
+        } catch (e: Exception) {
+            println("Error sending the request: ${e.message}")
+        } finally {
+            client.close()
         }
     }
 

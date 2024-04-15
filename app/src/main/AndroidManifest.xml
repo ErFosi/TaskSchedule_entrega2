@@ -4,6 +4,22 @@
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <uses-permission android:name="android.permission.WRITE_CALENDAR"/>
+    <uses-permission android:name="android.permission.READ_CALENDAR"/>
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+
+
+
     <application
         android:name=".MyApplication"
         android:allowBackup="true"
@@ -15,8 +31,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TaskSchedule"
         android:enableOnBackInvokedCallback="true"
-        tools:targetApi="31">
+        tools:targetApi="31"
+        tools:ignore="ForegroundServicePermission">
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="general_channel"/>
 
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value=""/>
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -24,7 +47,7 @@
             android:theme="@style/Theme.TaskSchedule">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -37,7 +60,55 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+        <receiver android:name="com.example.taskschedule.utils.SincronizacionReceiver" android:enabled="true" android:exported="false">
+
+        </receiver>
+
+        <receiver android:name=".widget.MyAppWidgetReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+         </receiver>
+
+        <receiver android:name=".BootCompletedReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".widget.AppCloseReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.ACTION_SHUTDOWN"/>
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".widget.Widget" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget" />
+        </receiver>
+
+
+        <service
+            android:name=".utils.SincronizacionService"
+            android:exported="true"
+            android:foregroundServiceType="dataSync">
+            <!-- Si necesitas configurar opciones adicionales para el servicio, puedes hacerlo aquí -->
+        </service>
+        <service
+            android:name="com.example.taskschedule.utils.FirebaseController"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+
+        </service>
 
     </application>
+
 
 </manifest>
