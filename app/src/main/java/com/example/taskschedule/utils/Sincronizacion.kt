@@ -40,20 +40,16 @@ import android.os.Build
 
 import kotlinx.coroutines.*
 
+import com.example.taskschedule.widget.Widget
+
 
 class SincronizacionReceiver : BroadcastReceiver() {
 
-        override fun onReceive(context: Context, intent: Intent) {
-            if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.FOREGROUND_SERVICE) == PackageManager.PERMISSION_GRANTED) {
-                Log.d("d","Se ha creado el intent de sincronizacion")
-                val serviceIntent = Intent(context, SincronizacionService::class.java)
-                context.startForegroundService(serviceIntent)
-            } else {
-                Log.d("T","No hay permisos")
-            }
+    override fun onReceive(context: Context, intent: Intent) {
+        val serviceIntent = Intent(context, SincronizacionService::class.java)
+        context.startForegroundService(serviceIntent)
 
-
-        }
+    }
     }
 
 

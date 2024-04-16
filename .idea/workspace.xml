@@ -9,35 +9,15 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2ccc1d09-1a35-461c-842a-9b2e65f3b2ff" name="Changes" comment="Sincronizacion y manejo de fotos finalizado.">
+    <list default="true" id="2ccc1d09-1a35-461c-842a-9b2e65f3b2ff" name="Changes" comment="App finalizada">
       <change afterPath="$PROJECT_DIR$/app/google-services.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/repositories/GoogleLocationsRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/utils/FirebaseController.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/utils/Sincronizacion.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/widget/Widget.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/src/main/res/xml/widget.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/app/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/app/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/release/app-release.apk" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/MainActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/MainActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/data/UbicacionDao.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/data/UbicacionDao.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/di/AppModule.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/di/AppModule.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/repositories/UbicacionesRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/repositories/UbicacionesRepository.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/screens/actividades.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/screens/actividades.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/screens/login.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/screens/login.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/screens/profile.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/screens/profile.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/utils/SecurityModule.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/utils/SecurityModule.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/utils/WebClient.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/utils/WebClient.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/viewmodels/activityViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/viewmodels/activityViewModel.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/viewmodels/loginViewModel.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/values-en/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values-en/strings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/values-es/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values-es/strings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/values-eu/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values-eu/strings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/values/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values/strings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/xml/file_paths.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/xml/file_paths.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/utils/Sincronizacion.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/utils/Sincronizacion.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/widget/Widget.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskschedule/widget/Widget.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/xml/widget.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/xml/widget.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,7 +27,7 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[C:\Users\alvar\.android\avd\Pixel_7_Pro_API_26.avd]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[C:\Users\alvar\.android\avd\Pixel_3a_API_34_extension_level_7_x86_64.avd]" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
@@ -79,8 +59,9 @@
     </option>
   </component>
   <component name="GenerateSignedApkSettings">
-    <option name="KEY_STORE_PATH" value="C:\Users\alvar\key.jks" />
+    <option name="KEY_STORE_PATH" value="C:\Users\alvar\key1.jks" />
     <option name="KEY_ALIAS" value="key0" />
+    <option name="REMEMBER_PASSWORDS" value="true" />
     <option name="BUILD_TARGET_KEY" value="apk" />
   </component>
   <component name="Git.Settings">
@@ -129,7 +110,7 @@
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
     "git-widget-placeholder": "main",
-    "last_opened_file_path": "C:/Users/alvar/AndroidStudioProjects/TaskSchedule_entrega2",
+    "last_opened_file_path": "C:/Users/alvar/key1.jks",
     "project.structure.last.edited": "Project",
     "project.structure.proportion": "0.17",
     "project.structure.side.proportion": "0.2",
@@ -376,7 +357,15 @@
       <option name="project" value="LOCAL" />
       <updated>1712515449902</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="App finalizada">
+      <option name="closed" value="true" />
+      <created>1713223206515</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1713223206515</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -398,6 +387,7 @@
     <MESSAGE value="Inicio para http client y login" />
     <MESSAGE value="cliente http creado" />
     <MESSAGE value="Sincronizacion y manejo de fotos finalizado." />
-    <option name="LAST_COMMIT_MESSAGE" value="Sincronizacion y manejo de fotos finalizado." />
+    <MESSAGE value="App finalizada" />
+    <option name="LAST_COMMIT_MESSAGE" value="App finalizada" />
   </component>
 </project>

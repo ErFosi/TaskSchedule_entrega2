@@ -96,7 +96,18 @@ class MainActivity : AppCompatActivity() {
     private val REQUEST_CODE_LOCATION_PERMISSIONS = 2
     private val REQUEST_CODE_FOREGROUND_SERVICE = 1002
     private  val REQUEST_CODE_GET_ACCOUNTS = 1002
+    private val REQUEST_CODE_CAMERA_PERMISSION = 1004
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+
+    private val allPermissions = mapOf(
+        Manifest.permission.POST_NOTIFICATIONS to REQUEST_CODE_POST_NOTIFICATIONS,
+        Manifest.permission.READ_CALENDAR to REQUEST_CODE_CALENDAR_PERMISSIONS,
+        Manifest.permission.WRITE_CALENDAR to REQUEST_CODE_CALENDAR_PERMISSIONS,
+        Manifest.permission.ACCESS_FINE_LOCATION to REQUEST_CODE_LOCATION_PERMISSIONS,
+        Manifest.permission.ACCESS_COARSE_LOCATION to REQUEST_CODE_LOCATION_PERMISSIONS,
+        Manifest.permission.GET_ACCOUNTS to REQUEST_CODE_GET_ACCOUNTS,
+
+    )
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         /************************************************************************
@@ -104,7 +115,7 @@ class MainActivity : AppCompatActivity() {
          *************************************************************************/
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
+        checkAndRequestAllPermissions()
         val name = getString(R.string.channel_act)
         val descriptionText = getString(R.string.channel_desc)
 
@@ -115,12 +126,9 @@ class MainActivity : AppCompatActivity() {
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(mChannel)
         createNotificationChannel()
-        checkAndRequestNotificationPermission()
-        checkAndRequestCalendarPermissions()
-        checkAndRequestLocationPermissions()
-        checkAndRequestAccountsPermission()
-        checkAndRequestAllPermissions()
 
+
+        configurarAlarma(this.baseContext)
         updateWidget()
 
 
@@ -138,42 +146,26 @@ class MainActivity : AppCompatActivity() {
     }
     override fun onPause() {
         super.onPause()
+        Log.d("E","Update widgets")
         updateWidget()
+        Log.d("Widget init","Updated widgets")
     }
-    private fun checkAndRequestAccountsPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.GET_ACCOUNTS) != PackageManager.PERMISSION_GRANTED) {
-            // El permiso no ha sido concedido, solicitarlo
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.GET_ACCOUNTS), REQUEST_CODE_GET_ACCOUNTS)
-        }
+    override fun onStop() {
+        super.onStop()
+        Log.d("E","Update widgets")
+        updateWidget()
+        Log.d("E","Updated widgets")
     }
-    private fun updateWidget() {
-        Log.d("Widget", "Intent para update")
-        val intent = Intent(this, MyAppWidgetReceiver::class.java)
-        intent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-        val appWidgetManager = AppWidgetManager.getInstance(application)
-        val ids = appWidgetManager.getAppWidgetIds(ComponentName(application, Widget::class.java))
 
-        if (ids.isNotEmpty()) {
-            Log.d("Widget", "IDs encontrados: ${ids.joinToString(", ")}")
+    private fun updateWidget() {
+        try {
+            val intent = Intent(this, MyAppWidgetReceiver::class.java)
+            intent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+            val ids = AppWidgetManager.getInstance(application).getAppWidgetIds(ComponentName(application, Widget::class.java))
             intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
             sendBroadcast(intent)
-        } else {
-            Log.d("Widget", "No se encontraron IDs de widgets")
-            sendBroadcast(intent)
-        }
-    }
-    private fun checkAndRequestCalendarPermissions() {
-        val permissions = arrayOf(
-            Manifest.permission.READ_CALENDAR,
-            Manifest.permission.WRITE_CALENDAR
-        )
-
-        val deniedPermissions = permissions.filter {
-            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
-        }.toTypedArray()
-
-        if (deniedPermissions.isNotEmpty()) {
-            ActivityCompat.requestPermissions(this, deniedPermissions, REQUEST_CODE_CALENDAR_PERMISSIONS)
+        } catch (e: Exception) {
+            Log.e("WidgetUpdateError", "Error updating widget: ${e.message}")
         }
     }
     private fun createNotificationChannel() {
@@ -192,109 +184,52 @@ class MainActivity : AppCompatActivity() {
             notificationManager.createNotificationChannel(channel)
         }
     }
-    companion object {
-        private const val REQUEST_CODE_POST_NOTIFICATIONS = 1
-    }
-    private fun checkAndRequestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.POST_NOTIFICATIONS)) {
-                    // Mostrar una explicación al usuario *asíncronamente* -- no bloquear
-                    // este hilo esperando la respuesta del usuario! Después de que el usuario
-                    // vea la explicación, vuelve a intentar solicitar el permiso.
-                    showRationaleDialog()
-                } else {
-                    // No se necesita explicación, podemos solicitar el permiso.
-                    ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQUEST_CODE_POST_NOTIFICATIONS)
-                }
-            }
-        }
-    }
-    private fun checkAndRequestLocationPermissions() {
-        val permissions = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
 
-        val deniedPermissions = permissions.filter {
-            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
-        }.toTypedArray()
-
-        if (deniedPermissions.isNotEmpty()) {
-            ActivityCompat.requestPermissions(this, deniedPermissions, REQUEST_CODE_LOCATION_PERMISSIONS)
-        }
-    }
-    private fun checkAndRequestForegroundServicePermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.FOREGROUND_SERVICE) != PackageManager.PERMISSION_GRANTED) {
-                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.FOREGROUND_SERVICE)) {
-                    // Mostrar un diálogo explicativo antes de solicitar el permiso formalmente
-                    showForegroundServiceRationaleDialog()
-                } else {
-                    // Solicitar el permiso directamente
-                    ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.FOREGROUND_SERVICE), REQUEST_CODE_FOREGROUND_SERVICE)
-                }
-            }
-        }
-    }
-
-    private fun showForegroundServiceRationaleDialog() {
-        AlertDialog.Builder(this)
-            .setTitle("Permiso Requerido")
-            .setMessage("Esta aplicación necesita el permiso de servicio en primer plano para funcionar correctamente.")
-            .setPositiveButton("Aceptar") { dialog, which ->
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.FOREGROUND_SERVICE), REQUEST_CODE_FOREGROUND_SERVICE)
-            }
-            .setNegativeButton("Cancelar") { dialog, which ->
-                dialog.dismiss()
-            }
-            .create()
-            .show()
-    }
     private fun checkAndRequestAllPermissions() {
-        checkAndRequestNotificationPermission()
-        checkAndRequestCalendarPermissions()
-        checkAndRequestLocationPermissions()
-        checkAndRequestForegroundServicePermission()
+        val allPermissions = mapOf(
+            Manifest.permission.POST_NOTIFICATIONS to REQUEST_CODE_POST_NOTIFICATIONS,
+            Manifest.permission.READ_CALENDAR to REQUEST_CODE_CALENDAR_PERMISSIONS,
+            Manifest.permission.WRITE_CALENDAR to REQUEST_CODE_CALENDAR_PERMISSIONS,
+            Manifest.permission.ACCESS_FINE_LOCATION to REQUEST_CODE_LOCATION_PERMISSIONS,
+            Manifest.permission.ACCESS_COARSE_LOCATION to REQUEST_CODE_LOCATION_PERMISSIONS,
+            //Manifest.permission.GET_ACCOUNTS to REQUEST_CODE_GET_ACCOUNTS
+
+        )
+
+
+        val neededPermissions = allPermissions.filter {
+            ContextCompat.checkSelfPermission(this, it.key) != PackageManager.PERMISSION_GRANTED
+        }
+
+        if (neededPermissions.isNotEmpty()) {
+            val rationaleNeeded = neededPermissions.any { ActivityCompat.shouldShowRequestPermissionRationale(this, it.key) }
+            if (rationaleNeeded) {
+                showGeneralRationaleDialog(neededPermissions.keys.toList())
+            } else {
+                requestAllNeededPermissions(neededPermissions)
+            }
+        }
     }
-    private fun showRationaleDialog() {
+
+    private fun requestAllNeededPermissions(permissions: Map<String, Int>) {
+        val permissionsArray = permissions.keys.toTypedArray()
+        val requestCode = permissions.values.first()  // You could enhance this to handle multiple request codes if needed
+        ActivityCompat.requestPermissions(this, permissionsArray, requestCode)
+    }
+
+    private fun showGeneralRationaleDialog(permissions: List<String>) {
         AlertDialog.Builder(this)
-            .setTitle("Permission Needed")
-            .setMessage("This app needs the notification permission to notify you about important updates.")
+            .setTitle("Multiple Permissions Needed")
+            .setMessage("This app needs several permissions to function properly. Please grant them.")
             .setPositiveButton("OK") { dialog, id ->
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQUEST_CODE_POST_NOTIFICATIONS)
+                requestAllNeededPermissions(permissions.map { it to allPermissions[it]!! }.toMap())
             }
             .setNegativeButton("Cancel", null)
             .create()
             .show()
     }
-    /*
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            REQUEST_CODE_POST_NOTIFICATIONS -> {
-                // Manejo de la respuesta para permisos de notificaciones
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Permiso de notificación concedido
-                } else {
-                    // Permiso de notificación denegado
-                }
-            }
-            REQUEST_CODE_CALENDAR_PERMISSIONS -> {
-                // Manejo de la respuesta para permisos de calendario
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-                    // Ambos permisos de calendario concedidos
-                } else {
-                    // Al menos uno de los permisos de calendario fue denegado
 
-                }
-            }
-            REQUEST_CODE_LOCATION_PERMISSIONS -> {
-                // Manejo de la respuesta para permisos de localización
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Permiso de localización concedido
-                } else {
-                    // Permiso de localización denegado
-                }
-            }
-        }*/
+
 
         override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults)
@@ -476,7 +411,7 @@ fun TaskDownBar(navController: NavHostController) {
  *************************************************************************/
 @Composable
 fun NavigationGraph(navController: NavHostController, viewModel: ActivitiesViewModel) {
-    configurarAlarma(LocalContext.current)
+
     NavHost(navController = navController, startDestination = "login", Modifier.fillMaxSize()) {
         composable("login"){
             Log.d("d","El usuario es:"+viewModel.obtenerUltUsuario())

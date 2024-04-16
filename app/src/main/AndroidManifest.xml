@@ -68,6 +68,9 @@
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
             </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget" />
          </receiver>
 
         <receiver android:name=".BootCompletedReceiver"
@@ -83,14 +86,7 @@
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".widget.Widget" android:exported="true">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/widget" />
-        </receiver>
+
 
 
         <service

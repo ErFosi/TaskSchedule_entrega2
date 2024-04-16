@@ -45,6 +45,7 @@ import java.time.LocalDate
 
 
 import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.appwidget.updateAll
 import androidx.glance.background
 import androidx.glance.layout.Box
@@ -55,6 +56,7 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import io.ktor.util.debug.initContextInDebugMode
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
@@ -62,9 +64,16 @@ import kotlinx.coroutines.withContext
 
 
 class Widget(private var actividades: List<Actividad> = emptyList()) : GlanceAppWidget() {
-    fun updateActividades(newActividades: List<Actividad>) {
-        actividades = newActividades.sortedByDescending { it.tiempo }.take(5)
-        Log.d("Widget", "Se actualiza el widget")
+    suspend fun updateActividades(context: Context, newActividades: List<Actividad>) {
+        actividades = newActividades.sortedByDescending { it.tiempo }.take(4)
+        Log.d("Widget", "Se actualiza el widget con nuevas actividades")
+        Log.d("Widget","Se van a introducir los siguientes datos al widget")
+        for(act in actividades){
+            Log.d("Widget","${act.nombre} ${act.tiempo}")
+        }
+
+
+        this.updateAll(context)
     }
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
@@ -137,36 +146,67 @@ class MyAppWidgetReceiver : GlanceAppWidgetReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
-        val appComponent = EntryPointAccessors.fromApplication(
-            context.applicationContext,
-            WidgetReceiverEntryPoint::class.java
-        )
-        val actividadesRepo = appComponent.actividadesRepository()
-        Log.d("Widget","Entra al widget receiver")
+        // Comprobar si la acción es para actualizar el widget
+        if (intent.action == AppWidgetManager.ACTION_APPWIDGET_UPDATE) {
+            // Obtiene la instancia del repositorio
+            val appComponent = EntryPointAccessors.fromApplication(
+                context.applicationContext,
+                WidgetReceiverEntryPoint::class.java
+            )
+            val actividadesRepo = appComponent.actividadesRepository()
 
-        serviceScope.launch {
-            try {
-                Log.d("E","Intento de obtener acts")
-                val actividades = actividadesRepo.getActividadesPorFecha(LocalDate.now()).first()
-                Log.d("WidgetUpdate", "Actividades recuperadas: ${actividades.size}")
-                (glanceAppWidget as Widget).updateActividades(actividades)
-                (glanceAppWidget as Widget).updateAll(context)
-            } catch (e: Exception) {
-                Log.e("WidgetError", "Error al recuperar actividades: ${e.message}")
+            // Actualiza las actividades en un scope de coroutine
+            serviceScope.launch {
+                try {
+                    // Obtiene las actividades y actualiza el widget
+                    val actividades = actividadesRepo.getActividadesPorFecha(LocalDate.now()).first()
+                    Log.d("WidgetUpdate", "Actividades recuperadas: ${actividades.size}")
+                    for (act in actividades){
+                        Log.d("Widget","App t: ${act.nombre}  ${act.tiempo}")
+                    }
+
+                    // Actualiza las actividades del widget
+                    (glanceAppWidget as Widget).updateActividades(context, actividades)
+
+                } catch (e: Exception) {
+                    Log.e("WidgetError", "Error al recuperar actividades: ${e.message}")
+                }
             }
         }
     }
-
 }
 
 class AppCloseReceiver : BroadcastReceiver() {
+    private val serviceJob = Job()
+    private val serviceScope = CoroutineScope(Dispatchers.IO + serviceJob)
+    val glanceAppWidget: GlanceAppWidget = Widget()
     override fun onReceive(context: Context, intent: Intent) {
-        if (Intent.ACTION_SHUTDOWN.equals(intent.action)) {
-            val widgetUpdateIntent = Intent(context, MyAppWidgetReceiver::class.java)
-            widgetUpdateIntent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-            val ids = AppWidgetManager.getInstance(context).getAppWidgetIds(ComponentName(context, Widget::class.java))
-            widgetUpdateIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
-            context.sendBroadcast(widgetUpdateIntent)
+            // Comprobar si la acción es para actualizar el widget
+            if (intent.action == Intent.ACTION_SHUTDOWN) {
+                // Obtiene la instancia del repositorio
+                val appComponent = EntryPointAccessors.fromApplication(
+                    context.applicationContext,
+                    WidgetReceiverEntryPoint::class.java
+                )
+                val actividadesRepo = appComponent.actividadesRepository()
+
+                // Actualiza las actividades en un scope de coroutine
+                serviceScope.launch {
+                    try {
+                        // Obtiene las actividades y actualiza el widget
+                        val actividades = actividadesRepo.getActividadesPorFecha(LocalDate.now()).first()
+                        Log.d("WidgetUpdate", "Actividades recuperadas: ${actividades.size}")
+                        for (act in actividades){
+                            Log.d("Widget","App t: ${act.nombre}  ${act.tiempo}")
+                        }
+
+                        // Actualiza las actividades del widget
+                        (glanceAppWidget as Widget).updateActividades(context, actividades)
+
+                    } catch (e: Exception) {
+                        Log.e("WidgetError", "Error al recuperar actividades: ${e.message}")
+                    }
+                }
+            }
         }
     }
-}

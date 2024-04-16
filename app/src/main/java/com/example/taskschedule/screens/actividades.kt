@@ -533,10 +533,10 @@ fun agregarEventoCalendario(nombre: String) {
         if (uri != null) {
             // Evento agregado correctamente
             val eventId = ContentUris.parseId(uri)
-            Toast.makeText(context, "Evento agregado: ID=$eventId", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Evento agregado al Calendar: ID=$eventId", Toast.LENGTH_SHORT).show()
         } else {
             // Manejo de error
-            Toast.makeText(context, "Error al agregar el evento", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Error al agregar el evento al calendar", Toast.LENGTH_SHORT).show()
         }
     }
 
