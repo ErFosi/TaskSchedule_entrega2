@@ -95,7 +95,7 @@ class MainActivity : AppCompatActivity() {
     private val REQUEST_CODE_CALENDAR_PERMISSIONS = 101
     private val REQUEST_CODE_LOCATION_PERMISSIONS = 2
     private val REQUEST_CODE_FOREGROUND_SERVICE = 1002
-    private  val REQUEST_CODE_GET_ACCOUNTS = 1002
+    private val REQUEST_CODE_GET_ACCOUNTS = 1002
     private val REQUEST_CODE_CAMERA_PERMISSION = 1004
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
@@ -106,7 +106,7 @@ class MainActivity : AppCompatActivity() {
         Manifest.permission.ACCESS_FINE_LOCATION to REQUEST_CODE_LOCATION_PERMISSIONS,
         Manifest.permission.ACCESS_COARSE_LOCATION to REQUEST_CODE_LOCATION_PERMISSIONS,
         Manifest.permission.GET_ACCOUNTS to REQUEST_CODE_GET_ACCOUNTS,
-
+        Manifest.permission.CAMERA to REQUEST_CODE_CAMERA_PERMISSION
     )
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -129,7 +129,7 @@ class MainActivity : AppCompatActivity() {
 
 
         configurarAlarma(this.baseContext)
-        updateWidget()
+        //updateWidget()
 
 
 
@@ -193,6 +193,7 @@ class MainActivity : AppCompatActivity() {
             Manifest.permission.ACCESS_FINE_LOCATION to REQUEST_CODE_LOCATION_PERMISSIONS,
             Manifest.permission.ACCESS_COARSE_LOCATION to REQUEST_CODE_LOCATION_PERMISSIONS,
             //Manifest.permission.GET_ACCOUNTS to REQUEST_CODE_GET_ACCOUNTS
+            Manifest.permission.CAMERA to REQUEST_CODE_CAMERA_PERMISSION
 
         )
 
@@ -494,7 +495,7 @@ fun configurarAlarma(context: Context) {
         AlarmManager.RTC_WAKEUP,
         calendar.timeInMillis,
         //60000, 1 minuto para testear, funciona!
-        10800000,  // 3horas 3*60*60*1000
+        60000,  // 3horas 3*60*60*1000
         pendingIntent
     )
 }
