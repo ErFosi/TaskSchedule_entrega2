@@ -30,6 +30,10 @@ data class Actividad(
     val fecha: LocalDate = LocalDate.now()
 )
 
+/************************************************************************
+ * Data class de la ubicacion
+ *************************************************************************/
+
 @Entity(tableName = "ubicaciones")
 data class Ubicacion(
     @PrimaryKey(autoGenerate = true)
@@ -38,17 +42,26 @@ data class Ubicacion(
     val latitud: Double,
     val longitud: Double
 )
+/************************************************************************
+ * Sirve para serializar de clase a json los credenciales y mandarlo al servidor
+ *************************************************************************/
 @Serializable
 data class UsuarioCred(
     val usuario:String,
     val contraseña:String
 )
+
+/************************************************************************
+ * Sirve para tratar la respuesta del servidor
+ *************************************************************************/
 @Serializable
 data class UsuarioResponse(
     val usuario: String,
     val id: Int,
 )
-
+/************************************************************************
+ * ActividadAPI para serializarlo al json que gestiona el servidor
+ *************************************************************************/
 @Serializable
 data class ActividadApi(
     val id: Int,
@@ -61,14 +74,18 @@ data class ActividadApi(
     val fecha: String, // Suponiendo que la fecha viene en formato de String
     val ubicaciones: List<UbicacionApi> = emptyList() // Agregar este campo
 )
-
+/************************************************************************
+ * Ubicacion que existe en ActividadAPI
+ *************************************************************************/
 @Serializable
 data class UbicacionApi(
     val latitud: Double,
     val longitud: Double
 )
 
-
+/************************************************************************
+ * Recibir el mensaje de respuesta del servidor
+ *************************************************************************/
 @Serializable
 data class RespuestaServidor(
     val mensaje: String
