@@ -10,6 +10,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import com.example.taskschedule.utils.AESCipher
+
+
 /************************************************************************
  * Clase que se encarga de las dependencias con Hilt. En esta app
  * solo se usa singleton y en la función provides se puede ver lo que Hilt
