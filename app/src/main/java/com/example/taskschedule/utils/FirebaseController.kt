@@ -14,10 +14,14 @@ import com.google.firebase.messaging.RemoteMessage
 import com.example.taskschedule.R
 import com.example.taskschedule.NotificationChannelID
 
+    /************************************************************************
+     * Clase que gestiona Firebase, generación de token y notificación
+     *************************************************************************/
+
+
 class FirebaseController : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         remoteMessage.notification?.let { notification ->
-            // Mostrar una notificación
             showNotification(this,notification.title ?: "New Notification", notification.body ?: "You have a new message.")
         }
     }
@@ -44,7 +48,6 @@ class FirebaseController : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        // Envía el nuevo token al servidor si es necesario
 
     }
 
