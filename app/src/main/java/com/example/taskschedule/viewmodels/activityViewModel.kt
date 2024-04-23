@@ -197,7 +197,6 @@ private val languageManager: LanguageManager,
                 val ubis = ubicacionesRepo.getUbicacionesPorActividadStream(actividad.id)
                 var demasiadoCerca = false
 
-                // Recolectar todas las ubicaciones y luego decidir
                 ubis.collect { ubisList ->
                     ubisList.forEach { ubi ->
                         val distancia = locationsRepository.calcularDistancia(
@@ -207,7 +206,6 @@ private val languageManager: LanguageManager,
                             demasiadoCerca = true
                         }
                     }
-                    // Verificar después de recolectar todas las ubicaciones
                     if (!demasiadoCerca) {
                         Log.d("Localizacion", "Se agregó la ubicación")
                         ubicacionesRepo.insertUbicacion(nuevaUbi)
@@ -320,7 +318,6 @@ private val languageManager: LanguageManager,
      * verdad que pueden coincidir la probabilidad es bajisima (1 en 10.000)
      *************************************************************************/
     fun generateRandomNotificationId(): Int {
-        // Genera un ID aleatorio dentro de un rango. Se puede ajustar el rango según sea necesario.
         return Random.nextInt(1, 10000)
     }
 
@@ -329,7 +326,6 @@ private val languageManager: LanguageManager,
      * concuerde con la dada
      *************************************************************************/
     fun obtenerActividadPorId(id: Int): Flow<Actividad?> {
-        // Devuelve el Flow directamente para ser coleccionado de forma asíncrona donde sea necesario
         return actividadesRepo.getActividadStream(id)
     }
 
@@ -382,7 +378,6 @@ private val languageManager: LanguageManager,
             }
         }
         catch (e: Exception) {
-            // En caso de error, asigna a actividades una lista vacía mutable
             Log.d("S","No se pudo obtener la lista de actividades")
         }
 
@@ -459,16 +454,11 @@ private val languageManager: LanguageManager,
     fun subscribe(){
         viewModelScope.launch {
             try {
-                // Eliminar el token anterior de forma segura
                 firebaseMessaging.deleteToken().await()
 
                 Log.d("FCM", "Token deleted")
-
-                // Obtener un nuevo token
                 val newToken = firebaseMessaging.token.await()
                 Log.d("FCM", "New Token $newToken")
-
-                // Suscribir el usuario en el servidor usando el nuevo token
                 httpClient.subscribeUser(newToken)
 
             } catch (e: Exception) {
@@ -482,7 +472,7 @@ private val languageManager: LanguageManager,
     suspend fun register(username: String, contraseña: String): String = try {
         val usuario: UsuarioCred = UsuarioCred(username, contraseña)
         httpClient.register(usuario)
-        "success" // Asumiendo que deseas devolver "success" si no hay excepciones.
+        "success"
     } catch (e: UserExistsException) {
         Log.d("T", "user already exists")
         actividadesRepo.deleteAllActividades()
@@ -571,7 +561,6 @@ private val languageManager: LanguageManager,
      *actividad-ubicaciones
      *************************************************************************/
     suspend fun getActividadesApi(): List<ActividadApi> {
-        // Asegurándonos de esperar a que la transformación se complete.
         return _actividades.first().map { actividad ->
             val ubicaciones = ubicacionesRepo.getUbicacionesPorActividadStream(actividad.id).first()
             val ubicacionesApi = ubicaciones.map { ubicacion ->
