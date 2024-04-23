@@ -151,7 +151,7 @@ class SincronizacionService : Service() {
         return NotificationCompat.Builder(this, notificationChannelId)
             .setContentTitle("Sincronización Completada")
             .setContentText("La sincronización ha terminado exitosamente.")
-            .setSmallIcon(R.drawable.ic_launcher_foreground) // Cambia esto por un ícono adecuado
+            .setSmallIcon(R.drawable.ic_launcher_foreground) 
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
     }
@@ -163,7 +163,7 @@ class SincronizacionService : Service() {
         return NotificationCompat.Builder(this, notificationChannelId)
             .setContentTitle("Error de Sincronización")
             .setContentText("Hubo un error durante la sincronización.")
-            .setSmallIcon(R.drawable.ic_launcher_foreground) // Cambia esto por un ícono adecuado
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
     }
