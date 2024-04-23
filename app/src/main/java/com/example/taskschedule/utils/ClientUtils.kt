@@ -5,21 +5,17 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 
-/*******************************************************************************
- ****                               Exceptions                              ****
- *******************************************************************************/
+    /************************************************************************
+     * Excepciones
+     *************************************************************************/
 
 class AuthenticationException : Exception()
 class UserExistsException : Exception()
 
 
-/*******************************************************************************
- ****                         Response Data Classes                         ****
- *******************************************************************************/
-
-/**
- * Data class that represents server response when an [accessToken] is request.
- */
+    /************************************************************************
+     * Json del token
+     *************************************************************************/
 @Serializable
 data class TokenInfo(
     @SerialName("access_token") val accessToken: String,
@@ -28,11 +24,7 @@ data class TokenInfo(
 )
 
 
-/*******************************************************************************
- ****                          Bearer Token Storage                         ****
- *******************************************************************************/
-
-/**
- * [MutableList] to save retrieves [BearerTokens]
- */
+    /************************************************************************
+     * Lista donde se guarda el token
+     *************************************************************************/
 internal val bearerTokenStorage = mutableListOf<BearerTokens>()
