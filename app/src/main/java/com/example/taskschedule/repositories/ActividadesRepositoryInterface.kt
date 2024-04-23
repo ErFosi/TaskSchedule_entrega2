@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
 /************************************************************************
- * Interfaz del repositorio que contendra el DAO
+ * Interfaz del repositorio que contendra el DAO de actividades
  *************************************************************************/
 interface ActividadesRepositoryInterface {
     /**
