@@ -42,6 +42,9 @@ import kotlinx.coroutines.*
 
 import com.example.taskschedule.widget.Widget
 
+/************************************************************************
+ * Receptor para el servicio en segundo plano de la sincronización
+ *************************************************************************/
 
 class SincronizacionReceiver : BroadcastReceiver() {
 
@@ -52,7 +55,9 @@ class SincronizacionReceiver : BroadcastReceiver() {
     }
     }
 
-
+/************************************************************************
+ * Clase encargada de gestionar el servicio en segundo en plano de sincronización
+ *************************************************************************/
 @AndroidEntryPoint
 class SincronizacionService : Service() {
 
@@ -100,10 +105,12 @@ class SincronizacionService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        serviceJob.cancel()  // Cancela todas las coroutines cuando el servicio se destruya
+        serviceJob.cancel()  
         Log.d("SincronizacionService", "Service destroyed")
     }
-
+    /************************************************************************
+     * Crea un canal de notificaciones
+     *************************************************************************/
     private fun createNotification(): Notification {
         val notificationChannelId = "Task_channel"
         // Configuración del canal de notificación y creación de la notificación
@@ -115,7 +122,9 @@ class SincronizacionService : Service() {
             .build()
     }
 
-
+    /************************************************************************
+     *Función que se encarga de la sincronización, similar al del viewmodel
+     *************************************************************************/
     private suspend fun sincronizar() {
         try {
             val actividades = actividadesRepo.getActividadesStream().first()
@@ -134,6 +143,9 @@ class SincronizacionService : Service() {
             Log.e("SincronizacionService", "Error en sincronización", e)
         }
     }
+    /************************************************************************
+     * Notificación exitosa
+     *************************************************************************/
     private fun createSuccessNotification(): Notification {
         val notificationChannelId = "Task_channel"
         return NotificationCompat.Builder(this, notificationChannelId)
@@ -143,7 +155,9 @@ class SincronizacionService : Service() {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
     }
-
+    /************************************************************************
+     * Notificación error
+     *************************************************************************/
     private fun createErrorNotification(): Notification {
         val notificationChannelId = "Task_channel"
         return NotificationCompat.Builder(this, notificationChannelId)
@@ -153,6 +167,9 @@ class SincronizacionService : Service() {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
     }
+    /************************************************************************
+     * FUnción para obtener la lista de ActividadApi, igual que en el viewmodel
+     *************************************************************************/
     suspend fun getActividadesApi(acts: List<Actividad>): List<ActividadApi> {
         return acts.map { actividad ->
             val ubicaciones = ubicacionesRepo.getUbicacionesPorActividadStream(actividad.id).first()
