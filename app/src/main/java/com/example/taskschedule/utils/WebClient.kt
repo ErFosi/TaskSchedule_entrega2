@@ -134,7 +134,6 @@ class WebClient @Inject constructor() {
      *************************************************************************/
     @Throws(AuthenticationException::class, Exception::class)
     suspend fun sincronizarActividades(actividadesApi: List<ActividadApi>) : Int {
-        // Crear el cuerpo de la petición serializando el objeto adecuado a JSON
         val jsonActividades = Json.encodeToString(mapOf("actividades" to actividadesApi))
         Log.d("E",jsonActividades)
         try {
@@ -144,8 +143,6 @@ class WebClient @Inject constructor() {
                 bearerAuth(bearerTokenStorage.last().accessToken)
                 body = jsonActividades
             }.body<RespuestaServidor>()
-
-            // Verificar el mensaje de la respuesta
             if (respuesta.mensaje == "Actividades sincronizadas con éxito") {
                 Log.d("Sincronización", "Exitosa: ${respuesta.mensaje}")
                 return(200)
@@ -176,12 +173,10 @@ class WebClient @Inject constructor() {
 
         if (httpResponse.status == HttpStatusCode.OK) {
             val bytes = httpResponse.readBytes()
-            // Determina la extensión del archivo basada en el Content-Type
 
             return BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: throw Exception("No se pudo decodificar la imagen")
 
         } else {
-            // Maneja los casos de error
             throw Exception("Error al descargar la imagen: ${httpResponse.status.description}")
         }
     }
@@ -192,13 +187,10 @@ class WebClient @Inject constructor() {
         val stream = ByteArrayOutputStream()
         image.compress(Bitmap.CompressFormat.JPEG, 75, stream)
         val byteArray = stream.toByteArray()
-
-        // Obtiene el último token de acceso. Asegúrate de manejar la posibilidad de que esto pueda ser nulo o inválido.
         val token = bearerTokenStorage.last().accessToken
 
-        // Realiza la solicitud de subida con el método POST.
         clienteHttp.submitFormWithBinaryData(
-            url = "http://34.175.97.114:8000/profile/image", // Asegúrate de que la URL es correcta y usa HTTP o HTTPS según sea necesario.
+            url = "http://34.175.97.114:8000/profile/image", 
             formData = formData {
                 append("file", byteArray, Headers.build {
                     append(HttpHeaders.ContentType, "image/jpeg")
@@ -207,7 +199,6 @@ class WebClient @Inject constructor() {
             }
         ) {
             method = HttpMethod.Post // Aquí especificamos que queremos usar el método POST.
-            // Agrega el token de autorización en el encabezado si es necesario.
             header(HttpHeaders.Authorization, "Bearer $token")
         }
     }
