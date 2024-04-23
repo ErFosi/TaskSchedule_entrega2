@@ -90,6 +90,9 @@ enum class NotificationChannelID(val id: String) {
 }
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+    /************************************************************************
+         * Códigos de los permisos
+         *************************************************************************/
     private val viewModel by viewModels<ActivitiesViewModel>()
     private val REQUEST_CODE_POST_NOTIFICATIONS = 1001
     private val REQUEST_CODE_CALENDAR_PERMISSIONS = 101
@@ -144,18 +147,29 @@ class MainActivity : AppCompatActivity() {
 
         }
     }
+        /************************************************************************
+         * Al minimizar actualizar widget
+         *************************************************************************/
     override fun onPause() {
         super.onPause()
         Log.d("E","Update widgets")
         updateWidget()
         Log.d("Widget init","Updated widgets")
     }
+        /************************************************************************
+         * Al cerrar actualizar widget
+         *************************************************************************/
     override fun onStop() {
         super.onStop()
         Log.d("E","Update widgets")
         updateWidget()
         Log.d("E","Updated widgets")
     }
+
+        /************************************************************************
+         * Función que crea el intent para actualizar el intent, este se actualizará al cerrar
+         * o salir de la app
+         *************************************************************************/
 
     private fun updateWidget() {
         try {
@@ -168,11 +182,14 @@ class MainActivity : AppCompatActivity() {
             Log.e("WidgetUpdateError", "Error updating widget: ${e.message}")
         }
     }
+    /************************************************************************
+         * Crea el canal de noticaciones
+         *************************************************************************/
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name =  getString(R.string.channel_act) // El nombre amigable para el usuario del canal
-            val descriptionText =  getString(R.string.channel_desc)  // Descripción del canal
-            val importance = NotificationManager.IMPORTANCE_LOW // Importancia del canal
+            val name =  getString(R.string.channel_act)
+            val descriptionText =  getString(R.string.channel_desc)  
+            val importance = NotificationManager.IMPORTANCE_LOW 
 
             val channel = NotificationChannel(NotificationChannelID.GENERAL_CHANNEL.id, name, importance).apply {
                 description = descriptionText
@@ -184,7 +201,9 @@ class MainActivity : AppCompatActivity() {
             notificationManager.createNotificationChannel(channel)
         }
     }
-
+        /************************************************************************
+         * Función que inicia el inicio de verificación y pedir los permisos
+         *************************************************************************/
     private fun checkAndRequestAllPermissions() {
         val allPermissions = mapOf(
             Manifest.permission.POST_NOTIFICATIONS to REQUEST_CODE_POST_NOTIFICATIONS,
@@ -211,13 +230,17 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
+        /************************************************************************
+         * Pedir un array de permisos al usuario
+         *************************************************************************/
     private fun requestAllNeededPermissions(permissions: Map<String, Int>) {
         val permissionsArray = permissions.keys.toTypedArray()
-        val requestCode = permissions.values.first()  // You could enhance this to handle multiple request codes if needed
+        val requestCode = permissions.values.first() 
         ActivityCompat.requestPermissions(this, permissionsArray, requestCode)
     }
-
+        /************************************************************************
+         * Dialogo de permisos
+         *************************************************************************/
     private fun showGeneralRationaleDialog(permissions: List<String>) {
         AlertDialog.Builder(this)
             .setTitle("Multiple Permissions Needed")
@@ -231,7 +254,9 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-
+        /************************************************************************
+         * Si no se han otorgado todos los permisos cerrar la aplicación
+         *************************************************************************/
         override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults)
             if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
@@ -457,7 +482,10 @@ fun NavigationGraph(navController: NavHostController, viewModel: ActivitiesViewM
         }
     }
 }
-
+/************************************************************************
+ * Codigo antiguo encargado de generar la alarma diaria, se ha actualizado a periocidad
+ * con menos tiempo para que el profesor la pueda probar
+ *************************************************************************/
 //una vez al dia
 /*
 @Composable
@@ -480,6 +508,12 @@ fun configurarAlarma(context: Context,activitiesViewModel: ActivitiesViewModel) 
         pendingIntent
     )
 }*/
+
+/************************************************************************
+ * Función que condigura la alarma que inicia le sincronización en 
+ * segundo plano, está en 60.000 ms para que el profesor pueda probarlo
+ * No es exact por lo que el tiempo puede variar ligeramente
+ *************************************************************************/
 @SuppressLint("ShortAlarm")
 fun configurarAlarma(context: Context) {
     val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -499,6 +533,11 @@ fun configurarAlarma(context: Context) {
         pendingIntent
     )
 }
+
+/************************************************************************
+ * Cuando el movil se enciende se genera la alarma, esto es debido a que
+ * si el dispositivo se apaga la alarma se borra
+ *************************************************************************/
 
 class BootCompletedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
