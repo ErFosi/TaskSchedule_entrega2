@@ -7,6 +7,21 @@ import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
+/************************************************************************
+ * DAO data access object, Clase para conectarse con la Base de datos,
+ * esta tiene todos los metodos necesarios para obtener la información
+ * necesaria por la aplicación.
+ *
+ *
+ * Es importante remarcar que se devolveran valores tipo Flow, es decir
+ * los datos vendran dados como flujos de datos ya que si este se modifica
+ * podremos obtener el último resultado, además los composables se actualizarán
+ * de manera automática.
+ *
+ * Para las ubicaciones
+ *************************************************************************/
+
+
 @Dao
 interface UbicacionDao {
     @Insert
