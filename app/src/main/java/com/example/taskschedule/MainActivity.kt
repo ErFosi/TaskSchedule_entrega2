@@ -194,8 +194,6 @@ class MainActivity : AppCompatActivity() {
             val channel = NotificationChannel(NotificationChannelID.GENERAL_CHANNEL.id, name, importance).apply {
                 description = descriptionText
             }
-
-            // Registra el canal con el sistema
             val notificationManager: NotificationManager =
                 getSystemService(NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
@@ -260,9 +258,7 @@ class MainActivity : AppCompatActivity() {
         override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults)
             if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-                // Todos los permisos necesarios han sido concedidos
             } else {
-                // No todos los permisos fueron concedidos, manejar según la política de la app, posiblemente cerrando la app
                 closeAppDueToLackOfPermissions()
             }
         }
@@ -450,8 +446,6 @@ fun NavigationGraph(navController: NavHostController, viewModel: ActivitiesViewM
                 }
                 onDispose { }
             }
-
-            // Mostrar la pantalla de login si no hay último usuario
             if (ultimoUsuario.isEmpty()) {
                 LoginScreen(viewModel, navController)
             }
@@ -524,7 +518,6 @@ fun configurarAlarma(context: Context) {
         timeInMillis = System.currentTimeMillis()
     }
     Log.d("E","---------Alarma creada!!----------")
-    // Ajustar el intervalo a 120,000 milisegundos para que la alarma se ejecute cada 2 minutos
     alarmManager.setRepeating(
         AlarmManager.RTC_WAKEUP,
         calendar.timeInMillis,
