@@ -91,6 +91,11 @@ fun LanguageAndThemeSelector(actividadesViewModel: ActivitiesViewModel, navContr
         Toast.makeText(context, stringResource(id = R.string.errorFoto), Toast.LENGTH_LONG).show()
     }
 
+    
+/************************************************************************
+ * Orientación de la foto
+ *************************************************************************/
+
     fun rotateImageIfNeeded(bitmap: Bitmap, uri: Uri, context: Context): Bitmap {
         val inputStream = context.contentResolver.openInputStream(uri)
         val exifInterface = inputStream?.let {
@@ -141,20 +146,16 @@ fun LanguageAndThemeSelector(actividadesViewModel: ActivitiesViewModel, navContr
     val imagePickerLauncherFromCamera =
         rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { pictureTaken ->
             if (pictureTaken) {
-                // Decode the bitmap from the file
+                
                 val bitmap = BitmapFactory.decodeFile(actividadesViewModel.fotoPerfilPath)
-
-                // Rotate the bitmap 90 degrees
                 val rotatedBitmap =
                     actividadesViewModel.fotoPerfilPath?.let { rotateBitmapIfNeeded(it) }
 
-                // Optionally save the rotated bitmap back to a file if necessary
                 val outputStream = FileOutputStream(actividadesViewModel.fotoPerfilPath)
                 rotatedBitmap!!.compress(Bitmap.CompressFormat.JPEG, 50, outputStream)
                 outputStream.flush()
                 outputStream.close()
 
-                // Update the ViewModel or UI as necessary
                 actividadesViewModel.setProfileImage(rotatedBitmap!!)
             } else {
                 Toast.makeText(context, "Error capturing the photo", Toast.LENGTH_LONG).show()
@@ -169,8 +170,6 @@ fun LanguageAndThemeSelector(actividadesViewModel: ActivitiesViewModel, navContr
             val halfHeight: Int = height / 2
             val halfWidth: Int = width / 2
 
-            // Calcula el mayor inSampleSize que es una potencia de 2 y mantiene tanto
-            // la altura como la anchura mayor que los requerimientos.
             while ((halfHeight / inSampleSize) >= reqHeight && (halfWidth / inSampleSize) >= reqWidth) {
                 inSampleSize *= 2
             }
@@ -179,6 +178,7 @@ fun LanguageAndThemeSelector(actividadesViewModel: ActivitiesViewModel, navContr
         return inSampleSize
     }
 
+    //Comprime la foto a menos de 400KB
     fun compressImageToUnder400KB(bitmap: Bitmap): ByteArray {
         var quality = 100
         var compressedImage = ByteArrayOutputStream()
@@ -191,7 +191,7 @@ fun LanguageAndThemeSelector(actividadesViewModel: ActivitiesViewModel, navContr
         return compressedImage.toByteArray()
     }
 
-    // Gallery photo
+    // Obtener foto de la galería
     val imagePickerLauncherFromGallery =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { pictureTaken ->
             pictureTaken?.let { uri ->
@@ -241,6 +241,8 @@ fun LanguageAndThemeSelector(actividadesViewModel: ActivitiesViewModel, navContr
                 }
             }
         }
+
+    //Editar la foto de perfil
 
     fun onEditImageRequest(fromCamera: Boolean) {
 
@@ -397,6 +399,8 @@ fun LanguageAndThemeSelector(actividadesViewModel: ActivitiesViewModel, navContr
                     }
                 }
             }
+
+            //Comprueba si hay usuario con sesión iniciada, si la hay muestra los ajustes de usuario
             if (!actividadesViewModel.obtenerUltUsuario().equals("")) {
                 val painter = if (actividadesViewModel.fotoPerfil != null) {
                     Log.d("s", "se cargara la foto de perfil")
@@ -418,10 +422,7 @@ fun LanguageAndThemeSelector(actividadesViewModel: ActivitiesViewModel, navContr
                         IconButton(onClick = {
                             showDialogPhoto = true
                         }) {
-                            // Asumiendo que tienes una imagen de perfil como Drawable o desde un URL
-                            // Cambia la fuente de la imagen según tus necesidades
                             if (painter != null) {
-                                // Caso para URL o recurso, donde tenemos un painter válido
                                 Image(
                                     painter = painter,
                                     contentDescription = stringResource(R.string.fotoP),
