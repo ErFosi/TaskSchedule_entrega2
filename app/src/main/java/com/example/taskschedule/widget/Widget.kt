@@ -62,7 +62,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
-
+/************************************************************************
+ * Clase que contiene la función de actualización del widget y el composable
+ * glance que contiene todo el apartado visual.
+ *************************************************************************/
 class Widget(private var actividades: List<Actividad> = emptyList()) : GlanceAppWidget() {
     suspend fun updateActividades(context: Context, newActividades: List<Actividad>) {
         actividades = newActividades.sortedByDescending { it.tiempo }.take(4)
@@ -75,7 +78,9 @@ class Widget(private var actividades: List<Actividad> = emptyList()) : GlanceApp
 
         this.updateAll(context)
     }
-
+/************************************************************************
+* Composable del widget
+*************************************************************************/
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
             Box(
@@ -133,6 +138,11 @@ class Widget(private var actividades: List<Actividad> = emptyList()) : GlanceApp
         }
     }
 }
+/************************************************************************
+* Función encargada de obtener los datos de las actividades del día actual
+* es por esa razon que requiere @EntryPoint, es decir, para tener acceso
+* a los repositorios
+*************************************************************************/
 
 @EntryPoint
 @InstallIn(SingletonComponent::class)
@@ -175,6 +185,10 @@ class MyAppWidgetReceiver : GlanceAppWidgetReceiver() {
         }
     }
 }
+
+/************************************************************************
+* Receiver para cuando la aplicación se cierra
+*************************************************************************/
 
 class AppCloseReceiver : BroadcastReceiver() {
     private val serviceJob = Job()
