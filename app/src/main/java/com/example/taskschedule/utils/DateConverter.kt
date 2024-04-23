@@ -35,8 +35,6 @@ object ActividadMapper {
 
     fun convertirApiActividadAActividad(actividadApi: ActividadApi): Actividad {
         val fecha = LocalDate.parse(actividadApi.fecha) // Asumiendo formato ISO_LOCAL_DATE
-        // Alternativamente, si prefieres usar start_time_millis para determinar la fecha
-        // val fecha = Instant.ofEpochMilli(actividadApi.start_time_millis).atZone(ZoneId.systemDefault()).toLocalDate()
 
         return Actividad(
             id = actividadApi.id,
@@ -50,10 +48,8 @@ object ActividadMapper {
         )
     }
     fun convertirActividadAApiActividad(actividad: Actividad): ActividadApi {
-        // Convertir LocalDate a String
-        val fechaString = actividad.fecha.toString() // Asumiendo que fecha es LocalDate y deseas formato ISO_LOCAL_DATE
-        // Alternativamente, si prefieres usar startTimeMillis para la fecha
-        // Asegúrate de convertir LocalDate a millis de alguna manera
+        val fechaString = actividad.fecha.toString() 
+
 
         return ActividadApi(
             id = actividad.id,
