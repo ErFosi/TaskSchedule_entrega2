@@ -71,6 +71,11 @@ import com.example.taskschedule.viewmodels.ActivitiesViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+
+
+/************************************************************************
+* Switch para cambiar entre login y register
+*************************************************************************/
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomSwitch(
@@ -88,6 +93,10 @@ fun CustomSwitch(
         )
     )
 }
+
+/************************************************************************
+* Composable con toda la interfaz de la pantalla de login
+*************************************************************************/
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -138,7 +147,6 @@ fun LoginScreen(mainViewModel: ActivitiesViewModel, navController: NavHostContro
                     },
                     title = { Text(dialogTitle) },
                     text = {
-                        // Asegúrate de importar androidx.compose.ui.text.style.TextAlign
                         Text(
                             dialogText,
                             modifier = Modifier.fillMaxWidth(), // Llena el ancho máximo para centrar el texto
@@ -160,7 +168,6 @@ fun LoginScreen(mainViewModel: ActivitiesViewModel, navController: NavHostContro
             }
 
 
-            // Interfaz grafica
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -353,6 +360,10 @@ fun LoginScreen(mainViewModel: ActivitiesViewModel, navController: NavHostContro
         }
     }
 }
+
+/************************************************************************
+ * Composable que contiene la animación de las lineas que hay en el background
+ *************************************************************************/
 
 @Composable
 fun AnimatedDiagonalLinesBackground() {
