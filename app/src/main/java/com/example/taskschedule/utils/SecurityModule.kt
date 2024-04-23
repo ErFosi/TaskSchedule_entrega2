@@ -14,6 +14,12 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import javax.inject.Inject
 
+    /************************************************************************
+     * Clase que se encarga del cifrado y descifrado AESCipher
+     * codigo obtenido de internet, mirar bibiliografía documentación.
+    *************************************************************************/
+
+
 class NoCryptographicKeyException : Exception()
 
 class AESCipher @Inject constructor() {
