@@ -16,11 +16,18 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/************************************************************************
+ * Repositorio para acceder a la localización
+ *************************************************************************/
+
+
 @Singleton
 class GoogleLocationsRepository @Inject constructor(@ApplicationContext private val context: Context){
     private val fusedLocationClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(context)
-
+    /************************************************************************
+     * Obtener última ubicación
+     *************************************************************************/
     suspend fun getLastLocation(): Location? = withContext(Dispatchers.IO) {
         try {
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -34,6 +41,9 @@ class GoogleLocationsRepository @Inject constructor(@ApplicationContext private 
         null
     }
 
+    /************************************************************************
+     * Función que calcula distancia dadas dos localizaciones
+     *************************************************************************/
     fun calcularDistancia(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
         val r = 6371e3 // Radio de la Tierra en metros
         val φ1 = Math.toRadians(lat1)
