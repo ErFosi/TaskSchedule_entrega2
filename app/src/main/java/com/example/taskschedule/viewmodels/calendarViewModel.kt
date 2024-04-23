@@ -27,7 +27,7 @@ import kotlinx.coroutines.runBlocking
 
 @HiltViewModel
 class CalendarViewModel @Inject constructor(private val actividadesRepo: ActividadesRepository): ViewModel(){
-    private val _fechaSelec = MutableStateFlow(LocalDate.now()) // Estado interno mutable
+    private val _fechaSelec = MutableStateFlow(LocalDate.now())
     val fechaSelec: StateFlow<LocalDate> = _fechaSelec
     val actividadesFecha: Flow<List<Actividad>> = _fechaSelec.flatMapLatest { fecha ->
         actividadesRepo.getActividadesPorFecha(fecha)
