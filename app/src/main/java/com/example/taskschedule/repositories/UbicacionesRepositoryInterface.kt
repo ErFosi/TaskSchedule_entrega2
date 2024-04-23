@@ -4,6 +4,11 @@ import com.example.taskschedule.data.Ubicacion
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
+/************************************************************************
+ * Interfaz del repositorio que contendra el DAO de ubicaciones
+ *************************************************************************/
+
+
 interface UbicacionesRepositoryInterface {
     /**
      * Obtiene todas las ubicaciones de la base de datos
