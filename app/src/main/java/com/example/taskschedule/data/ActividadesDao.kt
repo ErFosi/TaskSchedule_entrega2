@@ -20,6 +20,8 @@ import java.time.LocalDate
  * los datos vendran dados como flujos de datos ya que si este se modifica
  * podremos obtener el último resultado, además los composables se actualizarán
  * de manera automática.
+ *
+ * Para las actividades
  *************************************************************************/
 @Dao
 interface ActividadesDao {
