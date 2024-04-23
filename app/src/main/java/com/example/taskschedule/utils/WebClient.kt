@@ -35,10 +35,16 @@ import kotlinx.serialization.json.Json
 import java.io.ByteArrayOutputStream
 
 
+/************************************************************************
+ * Clase singleton que se encarga de mandar todas las peticiones a la API
+ *************************************************************************/
+
 @OptIn(InternalAPI::class)
 @Singleton
 class WebClient @Inject constructor() {
-    //CIO permite corrutinas lo que permite asincronia con kotlin
+/************************************************************************
+ * Inicialización del cliente http
+ *************************************************************************/
     private val clienteHttp = HttpClient(CIO) {
         expectSuccess = true
 
@@ -59,7 +65,14 @@ class WebClient @Inject constructor() {
         }
     }
 
-
+/************************************************************************
+ * Función que manda usuario y contraseña al servidor, emite dos errores
+ * AuthenticationException y Exception, cuando se da el primero los credenciales
+ * son incorrectos, si no se asume que no se ha podido entablecer conexión
+ * con el servidor.
+ *
+ * Además, si se consigue hacer login se almacena el token Oauth (Última linea)
+ *************************************************************************/
     @Throws(AuthenticationException::class, Exception::class)
     suspend fun authenticate(user: UsuarioCred) {
         val tokenInfo: TokenInfo = clienteHttp.submitForm(
@@ -72,7 +85,14 @@ class WebClient @Inject constructor() {
 
         bearerTokenStorage.add(BearerTokens(tokenInfo.accessToken, tokenInfo.refreshToken))
     }
-
+/************************************************************************
+ * Función que manda la peticion de registrar un usuario, emite dos errores
+ * UserExistsException y Exception, cuando se da el primero significa que
+ * ya existe el usuario en la BD,si no 
+ *se asume que no se ha podido entablecer conexión con el servidor.
+ *
+ * Además, si se consigue hacer login se almacena el token Oauth (Última linea)
+ *************************************************************************/
 
     @Throws(UserExistsException::class, Exception::class)
     suspend fun register(user: UsuarioCred) {
@@ -89,6 +109,12 @@ class WebClient @Inject constructor() {
 
     }
 
+    /************************************************************************
+     * Lanza la petición para obtener las actividades del usuario loggeado
+     * emite dos exceptions, Exception si hay errores de conexión ó AuthenticationException
+     * si el token no es valido y hace falta pedir otro
+     *************************************************************************/
+
     @Throws(AuthenticationException::class, Exception::class)
     suspend fun obtenerActividades(): List<ActividadApi> {
         val actividadesApi: List<ActividadApi> = clienteHttp.get("http://34.175.97.114:8000/mis_actividades/") {
@@ -99,6 +125,13 @@ class WebClient @Inject constructor() {
         return actividadesApi
 
     }
+
+
+    /************************************************************************
+     * Lanza la petición para subir los datos al servidor,
+     * emite dos exceptions, Exception si hay errores de conexión ó AuthenticationException
+     * si el token no es valido y hace falta pedir otro
+     *************************************************************************/
     @Throws(AuthenticationException::class, Exception::class)
     suspend fun sincronizarActividades(actividadesApi: List<ActividadApi>) : Int {
         // Crear el cuerpo de la petición serializando el objeto adecuado a JSON
@@ -129,7 +162,11 @@ class WebClient @Inject constructor() {
 
 
     }
-
+    /************************************************************************
+     * Lanza la petición para descargar la imagen de perfil del usuario autenticado,
+     * emite dos exceptions, Exception si hay errores de conexión ó AuthenticationException
+     * si el token no es valido y hace falta pedir otro
+     *************************************************************************/
 
     @Throws(AuthenticationException::class, Exception::class)
     suspend fun descargarImagenDePerfil(): Bitmap {
@@ -148,7 +185,9 @@ class WebClient @Inject constructor() {
             throw Exception("Error al descargar la imagen: ${httpResponse.status.description}")
         }
     }
-
+    /************************************************************************
+     * Lanza la petición para subir una imagen al servidor
+     *************************************************************************/
     suspend fun uploadUserProfile(image: Bitmap) {
         val stream = ByteArrayOutputStream()
         image.compress(Bitmap.CompressFormat.JPEG, 75, stream)
@@ -172,7 +211,9 @@ class WebClient @Inject constructor() {
             header(HttpHeaders.Authorization, "Bearer $token")
         }
     }
-
+    /************************************************************************
+     * Lanza la petición para suscribirse al FCM enviando el token.
+     *************************************************************************/
     suspend fun subscribeUser(FCMClientToken: String) {
         val token = bearerTokenStorage.last().accessToken
         clienteHttp.post("http://34.175.97.114:8000/sub_a_act") {
@@ -181,6 +222,9 @@ class WebClient @Inject constructor() {
             setBody(mapOf("fcm_client_token" to FCMClientToken))
         }
     }
+    /************************************************************************
+     * Lanza la petición para testear el FCM
+     *************************************************************************/
     suspend fun testFCM() {
         val client = HttpClient()
         try {
