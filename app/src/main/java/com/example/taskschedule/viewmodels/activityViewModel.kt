@@ -341,7 +341,9 @@ private val languageManager: LanguageManager,
     }
 
     /************************************************************************
-     * Autenticarse
+     * Autenticarse, dada la información utiliza webCLient para hacer las peticiones
+     * http y se encarga de gestionar los errores 
+     * (credenciales incorrectos, error de conexión...)
      *************************************************************************/
 
     suspend fun login(username: String, contraseña: String): String = try {
@@ -411,7 +413,10 @@ private val languageManager: LanguageManager,
         ubicacionesRepo.deleteAllUbiss()
         "error"
     }
-
+/************************************************************************
+ * Función que se encarga de preparar la app con los datos del usuario, 
+ * sus actividades, fotos de perfil, insertar en la base de datos local...
+ *************************************************************************/
     suspend fun loginInit(username: String, contraseña: String): String = try {
         val usuario = UsuarioCred(username, contraseña)
         httpClient.authenticate(usuario)
@@ -448,6 +453,9 @@ private val languageManager: LanguageManager,
         ubicacionesRepo.deleteAllUbiss()
         "error"
     }
+    /************************************************************************
+     * Suscripción a FCM
+     *************************************************************************/
     fun subscribe(){
         viewModelScope.launch {
             try {
@@ -468,6 +476,9 @@ private val languageManager: LanguageManager,
             }
         }
     }
+    /************************************************************************
+     * Igual que login solo que realiza la función de registrar
+     *************************************************************************/
     suspend fun register(username: String, contraseña: String): String = try {
         val usuario: UsuarioCred = UsuarioCred(username, contraseña)
         httpClient.register(usuario)
@@ -483,7 +494,10 @@ private val languageManager: LanguageManager,
         ubicacionesRepo.deleteAllUbiss()
         "error"
     }
-
+    /************************************************************************
+     * Cierra la sesión del usuario, elimina los datos del usuario y vacia 
+     * el datastore de manera que no exista last logged
+     *************************************************************************/
     fun logout(){
         viewModelScope.launch {
             val actividadesApi : List<ActividadApi> =getActividadesApi()
@@ -498,7 +512,12 @@ private val languageManager: LanguageManager,
 
 
     }
-
+    /************************************************************************
+     * Función encargada de obtener todas las actividades del usuario
+     * para mandarselas al servidor mediante la petición http de
+     * webClient, requiere pasar las actividades a ActividadApi que
+     * es la entidad que representa la relacion actividad-ubicaciones
+     *************************************************************************/
     fun sincronizar() {
         viewModelScope.launch {
             var error = httpClient.sincronizarActividades(getActividadesApi())
@@ -523,7 +542,9 @@ private val languageManager: LanguageManager,
             }
         }
     }
-
+/************************************************************************
+ *  Función que manda la petición para testear el FCM
+ *************************************************************************/
     fun probarFCM(){
         viewModelScope.launch {
             try{
@@ -534,7 +555,9 @@ private val languageManager: LanguageManager,
             }
         }
     }
-
+/************************************************************************
+ * Función que obtiene el último usuario que ha iniciado sesión
+ *************************************************************************/
     fun obtenerUltUsuario() : String{
         var user=""
         viewModelScope.launch{
@@ -543,6 +566,10 @@ private val languageManager: LanguageManager,
         }
         return(user)
     }
+    /************************************************************************
+     *Función para obtener la lista de actividadApi que representa la relación
+     *actividad-ubicaciones
+     *************************************************************************/
     suspend fun getActividadesApi(): List<ActividadApi> {
         // Asegurándonos de esperar a que la transformación se complete.
         return _actividades.first().map { actividad ->
