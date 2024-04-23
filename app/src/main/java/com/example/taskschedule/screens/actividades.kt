@@ -301,7 +301,9 @@ fun actividad(actividad: Actividad, actividadesViewModel: ActivitiesViewModel) {
         }
     }
 }
-
+/*************************************************************************
+ * Composable del mapa de google maps
+ *************************************************************************/
 
 @Composable
 fun MapContainer(actividad: Actividad, viewModel: ActivitiesViewModel, onDismiss: () -> Unit) {
@@ -319,7 +321,6 @@ fun MapContainer(actividad: Actividad, viewModel: ActivitiesViewModel, onDismiss
     }
 
     LaunchedEffect(ubicaciones) {
-        // Hacer zoom a la ubicación actual solo si no hay ubicaciones de actividades disponibles
         try{
             Log.d("Ubi","Mover a la posicion de loc")
             Log.d("Ubi",location.toString())
@@ -430,19 +431,17 @@ fun ListaActividadesUI(actividadesViewModel: ActivitiesViewModel) {
     }
 }
 
-
+/*************************************************************************
+ * Función encargada de crear el calendario en google calendar
+ *************************************************************************/
 
 @SuppressLint("Range")
 @Composable
 fun crearCalendarioSiNoExiste(): Long {
     val context = LocalContext.current
     val contentResolver = context.contentResolver
-
-    // Intentar obtener la cuenta de correo de un calendario existente
     val accountName: String? = obtenerEmailDeCalendarioExistente(contentResolver)
-        ?: obtenerCuentaEmailPrincipal(context) // Obtener la cuenta principal si no hay calendarios
-
-    // Si no se encuentra ninguna cuenta, no se puede continuar
+        ?: obtenerCuentaEmailPrincipal(context) 
     if (accountName.isNullOrEmpty()) {
         Log.d("Calendar", "No se encontró una cuenta de correo válida.")
         return -1
@@ -512,6 +511,10 @@ fun obtenerCuentaEmailPrincipal(context: Context): String? {
     val accounts = AccountManager.get(context).getAccountsByType("com.google")
     return accounts.firstOrNull()?.name
 }
+
+/*************************************************************************
+ * Función que crea el evento en el calendario
+ *************************************************************************/
 @Composable
 fun agregarEventoCalendario(nombre: String) {
     val context = LocalContext.current
